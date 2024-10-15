@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyanAccent),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -67,7 +67,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _counter++;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -112,6 +111,11 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            FloatingActionButton.extended(onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GiftDetails()));
+            }, label: Text("Gift Details Page")),
           ],
         ),
       ),
@@ -120,6 +124,187 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class GiftDetails extends StatelessWidget{
+  const GiftDetails({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.inversePrimary,title: Center(child: Text("Gift Details",style: TextStyle(fontSize: 30),)),),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              CircleAvatar(radius: 130,backgroundImage: NetworkImage('https://shop.switch.com.my/cdn/shop/files/iPhone_15_Pink_PDP_Image_Position-1__GBEN_7cf60425-0d5a-4bc9-bfd9-645b9c86e68e.jpg?v=1717694179&width=823')),
+              SizedBox(height: 10,),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Container(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Name',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey[900],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'IPhone 15',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blueGrey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Container(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey[900],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'The iPhone 15 has a 6.1-inch display, 48MP main camera, A16 Bionic chip, and USB-C port. It supports Dynamic Island, runs iOS 17, and starts at 799.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blueGrey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              Center(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Category',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey[900],
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Electronics',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.blueGrey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Expanded(
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Price',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey[900],
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                '1200',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.blueGrey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+              ),
+              SizedBox(height: 10),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(onPressed: (){}, child: Text("Pledge",style: TextStyle(color: Colors.white),),style: ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20),backgroundColor: Colors.green), // Padding
+                       ),
+                  ),
+                  SizedBox(width: 5),
+                  Expanded(
+                    child: ElevatedButton(onPressed: (){}, child: Text("Cancel",style: TextStyle(color: Colors.white),),style: ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20),backgroundColor: Colors.red), // Padding
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
