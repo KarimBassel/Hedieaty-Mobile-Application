@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -116,6 +118,11 @@ class _MyHomePageState extends State<MyHomePage> {
                   context,
                   MaterialPageRoute(builder: (context) => const GiftDetails()));
             }, label: Text("Gift Details Page")),
+            FloatingActionButton.extended(onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const Home()));
+            }, label: Text("Homepage")),
           ],
         ),
       ),
@@ -305,6 +312,113 @@ class GiftDetails extends StatelessWidget{
           ),
         ),
       ),
+    );
+  }
+}
+class Home extends StatelessWidget{
+  const Home({super.key});
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.inversePrimary,title: Center(child: Text("Homepage",style: TextStyle(fontSize: 30),)),),
+      body: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          children: [
+            SearchBar(
+              padding: const MaterialStatePropertyAll<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 16.0)),
+              leading: const Icon(Icons.search),
+            ),
+      SizedBox(height: 10,),
+      ElevatedButton(onPressed: (){}, child: Text("Create your own Event/List",style: TextStyle(color: Colors.white),),style: ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20),backgroundColor: Colors.cyan)),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Container(
+                width: double.infinity, // Makes the Card take full width
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(radius: 70,backgroundImage: NetworkImage('https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8')),
+
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text("Cristiano Ronaldo",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                          Text("Upcoming Events: 2",style: TextStyle(color: Colors.red,fontSize: 15),),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Container(
+                width: double.infinity, // Makes the Card take full width
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(radius: 70,backgroundImage: NetworkImage('https://img.freepik.com/premium-psd/man-with-beard-mustache-stands-front-white-background_1233986-1241.jpg')),
+
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text("Leonel Messi",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                          Text("No Upcoming Events",style: TextStyle(color: Colors.red,fontSize: 15),),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Container(
+                width: double.infinity, // Makes the Card take full width
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(radius: 70,backgroundImage: NetworkImage('https://img.freepik.com/free-photo/headshot-attractive-man-smiling-pleased-looking-intrigued-standing-blue-background_1258-65733.jpg?w=1060&t=st=1729004724~exp=1729005324~hmac=d4b3ea4ca32703e4beceb1d315a56d3d817890879c6cb523591fa770fde90195')),
+
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text("Mohamed Salah",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                          Text("Upcoming Events: 1",style: TextStyle(color: Colors.red,fontSize: 15),),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){},
+        tooltip: 'Add Friend',
+        child: const Icon(Icons.add),
+      ),
+
+
     );
   }
 }
