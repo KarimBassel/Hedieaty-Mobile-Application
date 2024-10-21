@@ -1,0 +1,58 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
+
+class FriendsCard extends StatelessWidget {
+  final String imageUrl;
+  final String name;
+  final String eventStatus;
+
+  const FriendsCard({
+    Key? key,
+    required this.imageUrl,
+    required this.name,
+    required this.eventStatus,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 45,
+              backgroundImage: NetworkImage(imageUrl),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    eventStatus,
+                    style: TextStyle(
+                        color: Colors.red, fontSize: 15),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
