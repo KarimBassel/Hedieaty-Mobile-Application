@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftDetails.dart';
@@ -127,6 +128,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   context,
                   MaterialPageRoute(builder: (context) =>  Profile()));
             }, label: Text("Profile")),
+
+
+            FloatingActionButton.extended(onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  MyPledgedGifts()));
+            }, label: Text("My Pledged Gifts")),
           ],
         ),
       ),

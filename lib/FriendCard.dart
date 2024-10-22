@@ -25,17 +25,17 @@ class FriendsCard extends StatelessWidget {
       ),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(10.0),
         child: Row(
           children: [
             CircleAvatar(
-              radius: 45,
+              radius: 35,
               backgroundImage: NetworkImage(imageUrl),
             ),
             SizedBox(width: 10),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     name,
@@ -45,7 +45,7 @@ class FriendsCard extends StatelessWidget {
                   Text(
                     eventStatus,
                     style: TextStyle(
-                        color: Colors.red, fontSize: 15),
+                        color: Colors.green, fontSize: 15),
                   ),
                 ],
               ),
