@@ -2,11 +2,15 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'GiftList.dart';
+import 'Gift.dart';
 
 class GiftDetails extends StatefulWidget {
   bool isOwner;
   bool isPledged;
-  GiftDetails({super.key, this.isOwner = true,this.isPledged=false});
+  final Gift gift;
+
+  GiftDetails({super.key, this.isOwner = false, this.isPledged = true, required this.gift});
 
   @override
   _GiftDetailsState createState() => _GiftDetailsState();
@@ -14,56 +18,30 @@ class GiftDetails extends StatefulWidget {
 
 class _GiftDetailsState extends State<GiftDetails> {
   File? _image;
-  final TextEditingController _nameController = TextEditingController(text: 'iPhone 15');
-  final TextEditingController _descriptionController = TextEditingController(text:
-  'The iPhone 15 has a 6.1-inch display, 48MP main camera, A16 Bionic chip, and USB-C port. It supports Dynamic Island, runs iOS 17, and starts at 799.');
-  final TextEditingController _categoryController = TextEditingController(text: 'Electronics');
-  final TextEditingController _priceController = TextEditingController(text: '1200');
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controllers with gift details
+    _nameController.text = widget.gift.name;
+    _descriptionController.text = widget.gift.description;
+    _categoryController.text = widget.gift.category;
+    _priceController.text = widget.gift.price.toString();
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
-    final XFile? pickedImage = await _picker.pickImage(
-        source: ImageSource.gallery);
+    final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
       setState(() {
         _image = File(pickedImage.path);
-        print(pickedImage.path);
       });
     }
-  }
-
-  void _editField(String field, TextEditingController controller) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit $field'),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(hintText: "Enter $field"),
-          ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Save'),
-              onPressed: () {
-                setState(() {
-                  //to update controller.text
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -74,7 +52,7 @@ class _GiftDetailsState extends State<GiftDetails> {
         title: Center(
           child: Text(
             "Gift Details",
-            style: TextStyle(fontSize: 30),
+            style: TextStyle(fontSize: 25),
           ),
         ),
       ),
@@ -85,14 +63,20 @@ class _GiftDetailsState extends State<GiftDetails> {
             sliver: SliverList(
               delegate: SliverChildListDelegate(
                 [
-                  // Avatar
-                  CircleAvatar(
-                    radius: 150,
-                    backgroundImage: _image != null
-                        ? FileImage(_image!)
-                        : NetworkImage(
-                        'https://shop.switch.com.my/cdn/shop/files/iPhone_15_Pink_PDP_Image_Position-1__GBEN_7cf60425-0d5a-4bc9-bfd9-645b9c86e68e.jpg?v=1717694179&width=823')
-                    as ImageProvider,
+                  Container(
+                    width: 250,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: widget.gift.image != null
+                            ? FileImage(widget.gift.image!)
+                            : NetworkImage(
+                          'https://shop.switch.com.my/cdn/shop/files/iPhone_15_Pink_PDP_Image_Position-1__GBEN_7cf60425-0d5a-4bc9-bfd9-645b9c86e68e.jpg?v=1717694179&width=823',
+                        ) as ImageProvider,
+                        fit: BoxFit.fill,
+                      ),
+                    ),
                   ),
                   if (widget.isOwner && !widget.isPledged)
                     IconButton(
@@ -102,7 +86,6 @@ class _GiftDetailsState extends State<GiftDetails> {
                       iconSize: 30,
                     ),
                   SizedBox(height: 10),
-
                   Center(
                     child: Text(
                       widget.isPledged ? 'Pledged' : 'Available',
@@ -115,198 +98,24 @@ class _GiftDetailsState extends State<GiftDetails> {
                   ),
                   SizedBox(height: 10),
 
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Name',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueGrey[900],
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  _nameController.text,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.blueGrey[700],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (widget.isOwner && !widget.isPledged)
-                            IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                _editField('Name', _nameController);
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Editable Name Field
+                  _buildEditableField("Name", _nameController),
                   SizedBox(height: 10),
 
-
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Description',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blueGrey[900],
-                                ),
-                              ),
-                              if (widget.isOwner && !widget.isPledged)
-                                IconButton(
-                                  icon: Icon(Icons.edit),
-                                  onPressed: () {
-                                    _editField('Description', _descriptionController);
-                                  },
-                                ),
-                            ],
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            _descriptionController.text,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.blueGrey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Editable Description Field
+                  _buildEditableField("Description", _descriptionController),
                   SizedBox(height: 10),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Category',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blueGrey[900],
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        _categoryController.text,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.blueGrey[700],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (widget.isOwner && !widget.isPledged)
-                                  IconButton(
-                                    icon: Icon(Icons.edit),
-                                    onPressed: () {
-                                      _editField('Category', _categoryController);
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      Expanded(
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Price',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blueGrey[900],
-                                        ),
-                                      ),
-                                      SizedBox(height: 10),
-                                      Text(
-                                        _priceController.text,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.blueGrey[700],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (widget.isOwner && !widget.isPledged)
-                                  IconButton(
-                                    icon: Icon(Icons.edit),
-                                    onPressed: () {
-                                      _editField('Price', _priceController);
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Editable Category Field
+                  _buildEditableField("Category", _categoryController),
                   SizedBox(height: 10),
 
-                  // Buttons Row
-                  if(!widget.isOwner && !widget.isPledged)
+                  // Editable Price Field
+                  _buildEditableField("Price", _priceController),
+
+                  SizedBox(height: 10),
+
+                  if (!widget.isOwner && !widget.isPledged)
                     Row(
                       children: [
                         Expanded(
@@ -343,6 +152,44 @@ class _GiftDetailsState extends State<GiftDetails> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEditableField(String label, TextEditingController controller) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey[900],
+              ),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: controller,
+              enabled: widget.isOwner && !widget.isPledged,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Enter $label',
+              ),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blueGrey[700],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

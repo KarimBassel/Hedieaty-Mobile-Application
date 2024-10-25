@@ -1,12 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftDetails.dart';
 import 'Home.dart';
 import 'Profile.dart';
+import 'GiftList.dart';
 import 'FriendCard.dart';
+import 'Gift.dart';
+import 'Event.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -115,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
             FloatingActionButton.extended(onPressed: (){
               Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) =>  GiftDetails()));
+                  MaterialPageRoute(builder: (context) =>  GiftDetails(gift : Gift(name: 'Gift 1', category: 'Toys', status: 'Available', description: 'Toy car', price: 20.0))));
             }, label: Text("Gift Details Page")),
             FloatingActionButton.extended(onPressed: (){
               Navigator.push(
@@ -135,6 +139,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   context,
                   MaterialPageRoute(builder: (context) =>  MyPledgedGifts()));
             }, label: Text("My Pledged Gifts")),
+
+            FloatingActionButton.extended(onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  EventListPage()));
+            }, label: Text("Event List")),
           ],
         ),
       ),

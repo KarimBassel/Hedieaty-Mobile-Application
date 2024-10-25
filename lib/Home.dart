@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'FriendCard.dart';
-
+import 'Friend.dart';
 
 
 
@@ -13,25 +13,25 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home>{
-  final List<Map<String, String>> friends = [
-    {
-      'imageUrl':
+  final List<Friend> friends = [
+    Friend(
+      image:
       'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-      'name': 'Cristiano Ronaldo',
-      'eventStatus': 'Upcoming Events: 2',
-    },
-    {
-      'imageUrl':
-      'https://img.freepik.com/premium-psd/man-with-beard-mustache-stands-front-white-background_1233986-1241.jpg',
-      'name': 'Leonel Messi',
-      'eventStatus': 'No Upcoming Events',
-    },
-    {
-      'imageUrl':
-      'https://img.freepik.com/free-photo/headshot-attractive-man-smiling-pleased-looking-intrigued-standing-blue-background_1258-65733.jpg?w=1060&t=st=1729004724~exp=1729005324~hmac=d4b3ea4ca32703e4beceb1d315a56d3d817890879c6cb523591fa770fde90195',
-      'name': 'Mohamed Salah',
-      'eventStatus': 'Upcoming Events: 1',
-    },
+      name: 'Cristiano Ronaldo',
+      upev: 'Upcoming Events: 2',
+    ),
+    Friend(
+      image:
+      'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+      name: 'Cristiano Ronaldo',
+      upev: 'Upcoming Events: 2',
+    ),
+    Friend(
+      image:
+      'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+      name: 'Cristiano Ronaldo',
+      upev: 'Upcoming Events: 2',
+    ),
   ];
 
 
@@ -43,7 +43,7 @@ class _HomeState extends State<Home>{
         title: Center(
           child: Text(
             "Homepage",
-            style: TextStyle(fontSize: 30),
+            style: TextStyle(fontSize: 25),
           ),
         ),
       ),
@@ -91,9 +91,9 @@ class _HomeState extends State<Home>{
                   ...friends.map((friend) => Column(
                     children: [
                       FriendsCard(
-                        imageUrl: friend['imageUrl']!,
-                        name: friend['name']!,
-                        eventStatus: friend['eventStatus']!,
+                        imageUrl: friend.image!,
+                        name: friend.name!,
+                        eventStatus: friend.upev!,
                       ),
                       SizedBox(height: 10),
                     ],
@@ -109,12 +109,14 @@ class _HomeState extends State<Home>{
         onPressed: () {
           setState(() {
 
-            friends.add({
-              'imageUrl':
-              'https://img.freepik.com/premium-psd/man-with-beard-mustache-stands-front-white-background_1233986-1241.jpg',
-              'name': 'New Friend',
-              'eventStatus': 'Upcoming Events: 0',
-            });
+            friends.add(
+              Friend(
+                image:
+                'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+                name: 'Cristiano Ronaldo',
+                upev: 'Upcoming Events: 2',
+              ),
+            );
 
           });
 
