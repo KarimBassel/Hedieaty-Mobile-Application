@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'Friend.dart';
+import 'Base Classes/Friend.dart';
 
 class FriendsCard extends StatelessWidget {
   final String imageUrl;
@@ -58,7 +58,6 @@ class FriendsCard extends StatelessWidget {
       leading: CircleAvatar( backgroundImage: NetworkImage(imageUrl),),
       title: Text(name),
       subtitle: Text(eventStatus),
-      trailing: Icon(Icons.favorite_rounded,color: Colors.red,),
     );
   }
 }

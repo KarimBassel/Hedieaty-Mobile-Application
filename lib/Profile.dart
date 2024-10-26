@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/EventList.dart';
+import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -231,8 +233,9 @@ class _ProfileState extends State<Profile>{
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        print(MediaQuery.sizeOf(context).width);
-                        print(MediaQuery.sizeOf(context).height);
+                        //print(MediaQuery.sizeOf(context).width);
+                        //print(MediaQuery.sizeOf(context).height);
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> EventListPage(isOwner: true,)));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.cyan,
@@ -259,7 +262,7 @@ class _ProfileState extends State<Profile>{
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> MyPledgedGifts()));
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.cyan, // Button background color

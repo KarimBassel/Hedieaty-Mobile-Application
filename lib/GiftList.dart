@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/GiftDetails.dart';
 import 'package:image_picker/image_picker.dart';
-import 'Gift.dart';
-import 'Event.dart';
+import 'Base Classes/Gift.dart';
+import 'Base Classes/Event.dart';
 
 
 class GiftListPage extends StatefulWidget {
   final Event event;
+  final bool isOwner;
 
-  GiftListPage({required this.event});
+  GiftListPage({required this.event,required this.isOwner});
 
   @override
   _GiftListPageState createState() => _GiftListPageState();
@@ -18,9 +19,9 @@ class GiftListPage extends StatefulWidget {
 
 class _GiftListPageState extends State<GiftListPage> {
   List<Gift> gifts = [
-    Gift(name: 'Gift 1', category: 'Toys', status: 'Available', description: 'Toy car', price: 20.0),
-    Gift(name: 'Gift 2', category: 'Books', status: 'Pledged', description: 'Storybook', price: 15.0),
-    Gift(name: 'Gift 3', category: 'Electronics', status: 'Available', description: 'Headphones', price: 50.0),
+    Gift(name: 'Car', category: 'Toys', status: 'Available', description: 'Toy car', price: 20.0,),
+    Gift(name: 'Atomic Habits', category: 'Books', status: 'Pledged', description: 'Storybook', price: 15.0),
+    Gift(name: 'Iphone 15', category: 'Electronics', status: 'Available', description: 'Headphones', price: 50.0),
   ];
 
   String _sortCriterion = 'Name';
@@ -30,6 +31,7 @@ class _GiftListPageState extends State<GiftListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Gifts for ${widget.event.name}'),
       ),
       body: Padding(
@@ -78,10 +80,12 @@ class _GiftListPageState extends State<GiftListPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if(widget.isOwner)
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () => _editGift(gift),
                           ),
+                          if(widget.isOwner)
                           IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () => _deleteGift(gift),
@@ -89,7 +93,7 @@ class _GiftListPageState extends State<GiftListPage> {
                         ],
                       ),
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => GiftDetails(gift: gift,isOwner: true,isPledged: gift.status =="Pledged"?true : false,)));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => GiftDetails(gift: gift,isOwner: widget.isOwner,isPledged: gift.status =="Pledged"?true : false,)));
                       },
                     ),
                   );
@@ -98,6 +102,7 @@ class _GiftListPageState extends State<GiftListPage> {
             ),
 
             // Button to add a new gift
+            if(widget.isOwner)
             ElevatedButton(
               onPressed: () => _addGift(),
               child: Text('Add Gift'),

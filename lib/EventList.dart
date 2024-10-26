@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/GiftList.dart';
-import 'Event.dart';
+import 'Base Classes/Event.dart';
 
 class EventListPage extends StatefulWidget {
+  final bool isOwner;
+  EventListPage({required this.isOwner});
+
   @override
   _EventListPageState createState() => _EventListPageState();
 }
 
 class _EventListPageState extends State<EventListPage> {
+
   List<Event> events = [
     Event(name: 'Conference', category: 'Business', status: 'Upcoming'),
     Event(name: 'Birthday Party', category: 'Personal', status: 'Past'),
@@ -50,10 +54,12 @@ class _EventListPageState extends State<EventListPage> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if(widget.isOwner)
                 IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: () => _editEvent(event),
                 ),
+                if(widget.isOwner)
                 IconButton(
                   icon: Icon(Icons.delete),
                   onPressed: () => _deleteEvent(event),
@@ -61,12 +67,13 @@ class _EventListPageState extends State<EventListPage> {
               ],
             ),
             onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => GiftListPage(event: event)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => GiftListPage(event: event,isOwner: widget.isOwner,)));
             },
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: !widget.isOwner? null :
+      FloatingActionButton(
         onPressed: _addEvent,
         child: Icon(Icons.add),
       ),

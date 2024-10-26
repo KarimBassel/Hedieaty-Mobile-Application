@@ -1,9 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/EventList.dart';
+import 'package:hedieatymobileapplication/Profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'FriendCard.dart';
-import 'Friend.dart';
+import 'Base Classes/Friend.dart';
 
 
 
@@ -40,75 +42,87 @@ class _HomeState extends State<Home>{
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Center(
-          child: Text(
-            "Homepage",
-            style: TextStyle(fontSize: 25),
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: Icon(Icons.account_circle),
+              iconSize: 35,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Profile()),
+                );
+              },
+            ),
+            Spacer(),
+            Text(
+              "Homepage",
+              style: TextStyle(fontSize: 25),
+            ),
+            Spacer(),
+          ],
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: Column(
-                children: [
-                  SearchBar(
-                    padding: const MaterialStatePropertyAll<EdgeInsets>(
-                        EdgeInsets.symmetric(horizontal: 16.0)),
-                    leading: const Icon(Icons.search),
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.cyan, // Button background color
-
-                        padding: EdgeInsets.symmetric(vertical: 15), // Button padding
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: Text(
-                        "Create your own Event/List",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  // Dynamic Card Generation
-                  ...friends.map((friend) => Column(
-                    children: [
-                      FriendsCard(
-                        imageUrl: friend.image!,
-                        name: friend.name!,
-                        eventStatus: friend.upev!,
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  )),
-
-                ],
+      body: ListView(
+        padding: const EdgeInsets.all(15),
+        children: [
+          SearchBar(
+            padding: const MaterialStatePropertyAll<EdgeInsets>(
+                EdgeInsets.symmetric(horizontal: 16.0)),
+            leading: const Icon(Icons.search),
+          ),
+          SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,)));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.cyan, // Button background color
+                padding: EdgeInsets.symmetric(vertical: 15), // Button padding
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 5,
+              ),
+              child: Text(
+                "Create your own Event",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
+          SizedBox(height: 20),
+
+          // Dynamic ListTile Generation
+          ...friends.map((friend) => Column(
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(friend.image!),
+                ),
+                title: Text(
+                  friend.name!,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(friend.upev!),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: false,)));
+                },
+              ),
+              Divider(), // Optional divider between each item
+            ],
+          )),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           setState(() {
-
             friends.add(
               Friend(
                 image:
@@ -117,13 +131,13 @@ class _HomeState extends State<Home>{
                 upev: 'Upcoming Events: 2',
               ),
             );
-
           });
-
         },
         tooltip: 'Add Friend',
         child: const Icon(Icons.add),
       ),
     );
   }
+
+
 }
