@@ -65,7 +65,6 @@ class _GiftDetailsState extends State<GiftDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Center(
           child: Text(
             "Gift Details",
@@ -95,7 +94,6 @@ class _GiftDetailsState extends State<GiftDetails> {
             IconButton(
               icon: Icon(Icons.camera_alt),
               onPressed: _pickImage,
-              color: Colors.blue,
               iconSize: 30,
             ),
           SizedBox(height: 10),

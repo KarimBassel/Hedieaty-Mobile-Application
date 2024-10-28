@@ -14,7 +14,7 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
-class _HomeState extends State<Home>{
+class _HomeState extends State<Home> {
   final List<Friend> friends = [
     Friend(
       image:
@@ -25,14 +25,14 @@ class _HomeState extends State<Home>{
     Friend(
       image:
       'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-      name: 'Cristiano Ronaldo',
-      upev: 'Upcoming Events: 2',
+      name: 'Leonel Messi',
+      upev: 'Upcoming Events: 1',
     ),
     Friend(
       image:
       'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-      name: 'Cristiano Ronaldo',
-      upev: 'Upcoming Events: 2',
+      name: 'Mohamed Salah',
+      upev: 'Upcoming Events: 5',
     ),
   ];
 
@@ -40,13 +40,13 @@ class _HomeState extends State<Home>{
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      appBar:  AppBar(
+
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
               icon: Icon(Icons.account_circle),
+              tooltip: "My Profile",
               iconSize: 35,
               onPressed: () {
                 Navigator.push(
@@ -55,35 +55,41 @@ class _HomeState extends State<Home>{
                 );
               },
             ),
-            Spacer(),
-            Text(
-              "Homepage",
-              style: TextStyle(fontSize: 25),
+            SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: SearchBar(
+                  padding: const MaterialStatePropertyAll<EdgeInsets>(
+                    EdgeInsets.symmetric(horizontal: 16.0),
+                  ),
+
+                  leading: const Icon(
+                    Icons.search,
+
+                  ),
+                ),
+              ),
             ),
-            Spacer(),
           ],
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(15),
         children: [
-          SearchBar(
-            padding: const MaterialStatePropertyAll<EdgeInsets>(
-                EdgeInsets.symmetric(horizontal: 16.0)),
-            leading: const Icon(Icons.search),
-          ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,)));
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => EventListPage(isOwner: true,)));
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.cyan, // Button background color
-                padding: EdgeInsets.symmetric(vertical: 15), // Button padding
+                backgroundColor: Colors.orangeAccent,
+                padding: EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 elevation: 5,
               ),
@@ -99,45 +105,138 @@ class _HomeState extends State<Home>{
           ),
           SizedBox(height: 20),
 
-          // Dynamic ListTile Generation
-          ...friends.map((friend) => Column(
-            children: [
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage(friend.image!),
-                ),
-                title: Text(
-                  friend.name!,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(friend.upev!),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: false,)));
-                },
-              ),
-              Divider(), // Optional divider between each item
-            ],
-          )),
+          ...friends.map((friend) =>
+              Column(
+                children: [
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: NetworkImage(friend.image!),
+                    ),
+                    title: Text(
+                      friend.name!,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                        color: Colors.orangeAccent,
+                        borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                        friend.upev!,
+                        style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                          fontWeight: FontWeight.bold
+                        ),
+                        ),
+                        ),
+                      ],
+                    ),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) =>
+                              EventListPage(isOwner: false,)));
+                    },
+                  ),
+                  Divider(),
+                ],
+              )),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            friends.add(
-              Friend(
-                image:
-                'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-                name: 'Cristiano Ronaldo',
-                upev: 'Upcoming Events: 2',
-              ),
-            );
-          });
-        },
-        tooltip: 'Add Friend',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: PopupMenuButton<String>(
+        tooltip: "Add Friend",
+        icon: Container(
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.orangeAccent,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
+        ),
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem(
+            value: 'manual',
+            child: Text('Add Friend Manually'),
+            onTap: showFriendDialogue,
+          ),
+          PopupMenuItem(
+            value: 'contacts',
+            child: Text('Add Friend from Contacts'),
+            onTap: () {
+              setState(() {
+                friends.add(
+                  Friend(
+                    image:
+                    'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+                    name: 'New Friend (From Contacts)',
+                    upev: 'Upcoming Events: 1',
+                  ),
+                );
+              });
+            },
+          ),
+        ],
+      )
+
+
+
     );
   }
 
+  void showFriendDialogue(){
+  final PhoneController = TextEditingController();
+
+  
+  showDialog(context: context, builder: (BuildContext context){
+    return AlertDialog(
+      title: Text("Add Friend Manually"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: PhoneController,
+            decoration: InputDecoration(labelText: 'Enter Phone Number'),
+          ),
+
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            final name = PhoneController.text;
+            setState(() {
+              friends.add(
+                Friend(
+                  image:
+                  'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+                  name: 'Cristiano Ronaldo',
+                  upev: 'Upcoming Events: 2',
+                  PhoneNumber: PhoneController.text,
+                ),
+              );
+            });
+
+            Navigator.of(context).pop();
+          },
+          child: Text('Save'),
+        ),
+      ],
+    );
+  });
+}
 
 }

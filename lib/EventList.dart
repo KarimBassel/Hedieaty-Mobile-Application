@@ -24,7 +24,7 @@ class _EventListPageState extends State<EventListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+
         title: Text('Event List'),
         actions: [
           DropdownButton<String>(
@@ -49,8 +49,19 @@ class _EventListPageState extends State<EventListPage> {
         itemBuilder: (context, index) {
           final event = events[index];
           return ListTile(
-            title: Text(event.name),
-            subtitle: Text('${event.category} - ${event.status}'),
+            title: Text(event.name,style: TextStyle(fontWeight: FontWeight.bold),),
+            subtitle: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // padding for spacing
+                    decoration: BoxDecoration(
+                      color: Colors.orangeAccent, // background color
+                      borderRadius: BorderRadius.circular(12), // rounded edges
+                    ),
+                    child: Text('${event.category} - ${event.status}',style: TextStyle(color: Colors.white),)),
+              ],
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -75,7 +86,8 @@ class _EventListPageState extends State<EventListPage> {
       floatingActionButton: !widget.isOwner? null :
       FloatingActionButton(
         onPressed: _addEvent,
-        child: Icon(Icons.add),
+        backgroundColor: Colors.orangeAccent,
+        child: Icon(Icons.add,color: Colors.white,),
       ),
     );
   }
@@ -137,10 +149,8 @@ class _EventListPageState extends State<EventListPage> {
 
                 setState(() {
                   if (event == null) {
-                    // Add a new event
                     events.add(Event(name: name, category: category, status: status));
                   } else {
-                    // Edit the existing event
                     event.name = name;
                     event.category = category;
                     event.status = status;

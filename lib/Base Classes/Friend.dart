@@ -8,6 +8,7 @@ class Friend {
   String? preferences;
   String upev;
   String? image;
+  String? PhoneNumber;
 
   Friend({
     this.id,
@@ -16,6 +17,7 @@ class Friend {
     this.preferences,
     required this.upev,
     this.image,
+    this.PhoneNumber
   });
   Map<String, dynamic> toMap() {
     return {
@@ -24,7 +26,8 @@ class Friend {
       'email': email,
       'preferences': preferences,
       'upev' : upev,
-      'image' : image
+      'image' : image,
+      'phone' :PhoneNumber,
     };
   }
 }

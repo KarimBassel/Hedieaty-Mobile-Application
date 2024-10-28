@@ -42,7 +42,7 @@ class PledgedGiftCard extends StatelessWidget {
             ),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
-                children:[ Text(due,style: TextStyle(fontSize: 17,color: Colors.green),)]))
+                children:[ Text(due,style: TextStyle(fontSize: 17,color: Colors.orangeAccent),)]))
           ],
         ),
       ),

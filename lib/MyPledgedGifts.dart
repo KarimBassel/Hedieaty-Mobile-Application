@@ -56,7 +56,7 @@ class MyPledgedGiftsState extends State<MyPledgedGifts>{
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      appBar: AppBar(
         title: Center(child: Text("My Pledged Gifts")),
       ),
       body: ListView(

@@ -31,7 +31,7 @@ class _GiftListPageState extends State<GiftListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+
         title: Text('Gifts for ${widget.event.name}'),
       ),
       body: Padding(
@@ -75,17 +75,29 @@ class _GiftListPageState extends State<GiftListPage> {
                       leading: gift.image != null
                           ? Image.file(gift.image!, width: 50, height: 50, fit: BoxFit.cover)
                           : Icon(Icons.image, size: 50),
-                      title: Text(gift.name),
-                      subtitle: Text('${gift.category} - ${gift.status} - \$${gift.price}'),
+                      title: Text(gift.name,style: TextStyle(fontWeight: FontWeight.bold),),
+                      subtitle: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.orangeAccent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text('${gift.category}',style: TextStyle(fontSize: 10,color: Colors.white),)),
+
+                        ],
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if(widget.isOwner)
+                          if(widget.isOwner && gift.status=="Available")
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () => _editGift(gift),
                           ),
-                          if(widget.isOwner)
+                          if(widget.isOwner && gift.status=="Available")
                           IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () => _deleteGift(gift),
@@ -101,14 +113,14 @@ class _GiftListPageState extends State<GiftListPage> {
               ),
             ),
 
-            // Button to add a new gift
-            if(widget.isOwner)
-            ElevatedButton(
-              onPressed: () => _addGift(),
-              child: Text('Add Gift'),
-            ),
           ],
         ),
+      ),
+      floatingActionButton: !widget.isOwner? null :
+      FloatingActionButton(
+        onPressed: _addGift,
+        backgroundColor: Colors.orangeAccent,
+        child: Icon(Icons.add,color: Colors.white,),
       ),
     );
   }
