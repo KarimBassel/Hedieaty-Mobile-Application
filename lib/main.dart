@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
+import 'package:hedieatymobileapplication/SignUp.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftDetails.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
-      home: Home(),
+      home: Signup(),
     );
   }
 }

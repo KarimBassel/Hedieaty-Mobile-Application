@@ -103,7 +103,7 @@ class _GiftDetailsState extends State<GiftDetails> {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
-                color: widget.isPledged ? Colors.red : Colors.green,
+                color: widget.isPledged ? Colors.amber[900] : Colors.amber[300],
               ),
             ),
           ),
@@ -133,7 +133,7 @@ class _GiftDetailsState extends State<GiftDetails> {
                     ),
                     style: ElevatedButton.styleFrom(
                       textStyle: const TextStyle(fontSize: 20),
-                      backgroundColor: widget.gift.status == "Available" ? Colors.green : Colors.red,
+                      backgroundColor: widget.gift.status == "Available" ? Colors.amber[300] : Colors.amber[900],
                     ),
                   ),
                 ),

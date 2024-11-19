@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/Profile.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,6 +16,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  Databaseclass? db;
   final List<Friend> friends = [
     Friend(
       image:
@@ -36,6 +38,11 @@ class _HomeState extends State<Home> {
     ),
   ];
 
+
+  @override
+  void initState() {
+    db = Databaseclass();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +144,7 @@ class _HomeState extends State<Home> {
                       ],
                     ),
                     onTap: () {
+
                       Navigator.push(context, MaterialPageRoute(
                           builder: (context) =>
                               EventListPage(isOwner: false,)));

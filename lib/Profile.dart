@@ -144,8 +144,8 @@ class _ProfileState extends State<Profile> {
                         switchstate = value;
                       });
                     },
-                    activeTrackColor: Colors.lightGreenAccent,
-                    activeColor: Colors.green,
+                    activeTrackColor: Colors.amber[100],
+                    activeColor: Colors.amber[900],
                   ),
                 ],
               ),

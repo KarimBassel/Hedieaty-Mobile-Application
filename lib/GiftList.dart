@@ -37,7 +37,7 @@ class _GiftListPageState extends State<GiftListPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Event: ${widget.event.name}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Text('Category: ${widget.event.category}', style: TextStyle(fontSize: 16)),
@@ -70,7 +70,7 @@ class _GiftListPageState extends State<GiftListPage> {
                   final gift = gifts[index];
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    color: gift.status == 'Pledged' ? Colors.red[100] : Colors.white,
+                    color: gift.status == 'Pledged' ? Colors.amber[100] : Colors.white,
                     child: ListTile(
                       leading: gift.image != null
                           ? Image.file(gift.image!, width: 50, height: 50, fit: BoxFit.cover)
