@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
@@ -89,8 +90,11 @@ class _SignUpState extends State<Signup> {
       final String phoneNumber = _phoneNumberController.text.trim();
       final String password = _passwordController.text.trim();
       final File? image = _selectedImage;
-      
-      print(await db.insertData("INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password) VALUES ('${name}', '${email}', '${preferences}', '${phoneNumber}', '${password}');"));
+      final imagebytes = await File(image!.path).readAsBytes();
+      String encodedim = base64Encode(imagebytes);
+      print(await db.insertData("INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password,Image) VALUES ('${name}', '${email}', '${preferences}', '${phoneNumber}', '${password}','${encodedim}');"));
+      // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('1', '2');");
+      // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('2', '1');");
       print("User inserted successfully");
 
       // Handle sign-up logic

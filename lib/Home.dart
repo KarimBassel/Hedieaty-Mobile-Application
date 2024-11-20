@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
@@ -11,32 +12,37 @@ import 'Base Classes/Friend.dart';
 
 
 class Home extends StatefulWidget {
+  Friend User;
+  Home({required this.User});
+
   @override
   _HomeState createState() => _HomeState();
+
+
 }
 
 class _HomeState extends State<Home> {
   Databaseclass? db;
-  final List<Friend> friends = [
-    Friend(
-      image:
-      'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-      name: 'Cristiano Ronaldo',
-      upev: 'Upcoming Events: 2',
-    ),
-    Friend(
-      image:
-      'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-      name: 'Leonel Messi',
-      upev: 'Upcoming Events: 1',
-    ),
-    Friend(
-      image:
-      'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-      name: 'Mohamed Salah',
-      upev: 'Upcoming Events: 5',
-    ),
-  ];
+  // final List<Friend> friends = [
+  //   Friend(
+  //     image:
+  //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+  //     name: 'Cristiano Ronaldo',
+  //     upev: 3,
+  //   ),
+  //   Friend(
+  //     image:
+  //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+  //     name: 'Leonel Messi',
+  //     upev: 2,
+  //   ),
+  //   Friend(
+  //     image:
+  //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+  //     name: 'Mohamed Salah',
+  //     upev: 6,
+  //   ),
+  // ];
 
 
   @override
@@ -55,10 +61,13 @@ class _HomeState extends State<Home> {
               icon: Icon(Icons.account_circle),
               tooltip: "My Profile",
               iconSize: 35,
-              onPressed: () {
+              onPressed: ()async {
+                Friend? uptodate = await Friend.getUserById(widget.User.id!);
+
+                widget.User=uptodate!;
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Profile()),
+                  MaterialPageRoute(builder: (context) => Profile(User:widget.User)),
                 );
               },
             ),
@@ -112,12 +121,12 @@ class _HomeState extends State<Home> {
           ),
           SizedBox(height: 20),
 
-          ...friends.map((friend) =>
+          ...widget.User.friendlist!.map((friend) =>
               Column(
                 children: [
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: NetworkImage(friend.image!),
+                      backgroundImage: MemoryImage(base64Decode(friend.image!.split(',').last)),
                     ),
                     title: Text(
                       friend.name!,
@@ -133,7 +142,7 @@ class _HomeState extends State<Home> {
                         borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                        friend.upev!,
+                          'Upcoming Events: ${friend.upev!}',
                         style: TextStyle(
                         fontSize: 13,
                         color: Colors.white,
@@ -180,14 +189,14 @@ class _HomeState extends State<Home> {
             child: Text('Add Friend from Contacts'),
             onTap: () {
               setState(() {
-                friends.add(
-                  Friend(
-                    image:
-                    'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-                    name: 'New Friend (From Contacts)',
-                    upev: 'Upcoming Events: 1',
-                  ),
-                );
+                // widget.User.friendlist!.add(
+                //   Friend(
+                //     image:
+                //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
+                //     name: 'New Friend (From Contacts)',
+                //     upev: 6,
+                //   ),
+                // );
               });
             },
           ),
@@ -224,18 +233,12 @@ class _HomeState extends State<Home> {
           child: Text('Cancel'),
         ),
         TextButton(
-          onPressed: () {
-            final name = PhoneController.text;
+          onPressed: ()async {
+            final phone = PhoneController.text;
+            Friend? newfriend = await Friend.registerFriend(widget.User.id!, phone);
+            widget.User.friendlist!.add(newfriend!);
             setState(() {
-              friends.add(
-                Friend(
-                  image:
-                  'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-                  name: 'Cristiano Ronaldo',
-                  upev: 'Upcoming Events: 2',
-                  PhoneNumber: PhoneController.text,
-                ),
-              );
+
             });
 
             Navigator.of(context).pop();

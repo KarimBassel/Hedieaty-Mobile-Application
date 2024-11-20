@@ -31,19 +31,25 @@ class Databaseclass {
   Email TEXT UNIQUE NOT NULL,
   Preferences TEXT,
   PhoneNumber TEXT NOT NULL,
-  Password TEXT NOT NULL
+  Password TEXT NOT NULL,
+  Image TEXT,
+  Notifications BOOLEAN DEFAULT 0,
+  UpcomingEvents INTEGER DEFAULT 0
 );
-
-CREATE TABLE Events (
+''');
+              db.execute('''
+              CREATE TABLE Events (
   ID INTEGER PRIMARY KEY AUTOINCREMENT,
   Name TEXT NOT NULL,
-  Date TEXT NOT NULL,
+  Date DATE NOT NULL,
   Location TEXT,
   Description TEXT,
   UserID INTEGER NOT NULL,
   FOREIGN KEY (UserID) REFERENCES Users(ID)
 );
+              ''');
 
+db.execute('''
 CREATE TABLE Gifts (
   ID INTEGER PRIMARY KEY AUTOINCREMENT,
   Name TEXT NOT NULL,
@@ -54,7 +60,9 @@ CREATE TABLE Gifts (
   EventID INTEGER NOT NULL,
   FOREIGN KEY (EventID) REFERENCES Events(ID)
 );
+''');
 
+db.execute('''
 CREATE TABLE Friends (
   UserID INTEGER NOT NULL,
   FriendID INTEGER NOT NULL,
@@ -62,16 +70,17 @@ CREATE TABLE Friends (
   FOREIGN KEY (UserID) REFERENCES Users(ID),
   FOREIGN KEY (FriendID) REFERENCES Users(ID)
 );
-      ''');
+''');
+
           print("Database has been created .......");
         });
     return mydb;
   }
 
-  readData(String SQL) async {
+  Future<List<Map<String, dynamic>>> readData(String SQL) async {
     Database? mydata = await MyDataBase;
-    var response = await mydata!.rawQuery(SQL);
-    return response;
+    return  await mydata!.rawQuery(SQL);
+
   }
 
   insertData(String SQL) async {

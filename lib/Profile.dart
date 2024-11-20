@@ -1,11 +1,16 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'Base Classes/Friend.dart';
 
 class Profile extends StatefulWidget {
+  Friend User;
+  Profile({required this.User});
+
   @override
   _ProfileState createState() => _ProfileState();
 }
@@ -17,13 +22,23 @@ class _ProfileState extends State<Profile> {
   TextEditingController _emailController = TextEditingController(text: "Cristiano@eng.asu.edu.eg");
   TextEditingController _preferencesController = TextEditingController(text: "Electronics, Sports");
 
+
+
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
+      final imagebytes = await File(pickedImage.path).readAsBytes();
+      String encodedim = base64Encode(imagebytes);
+
+      bool update = await Friend.updateUser(widget.User.id!,"Image",encodedim);
+      Friend? updateduser = await Friend.getUserById(widget.User.id!);
+      widget.User=updateduser!;
       setState(() {
         _image = File(pickedImage.path);
+
+
       });
     }
   }
@@ -56,7 +71,10 @@ class _ProfileState extends State<Profile> {
             ),
             TextButton(
               child: Text('Save'),
-              onPressed: () {
+              onPressed: () async{
+                bool update = await Friend.updateUser(widget.User.id!,field,controller.text);
+                Friend? updateduser = await Friend.getUserById(widget.User.id!);
+                widget.User=updateduser!;
                 setState(() {});
                 Navigator.of(context).pop();
               },
@@ -69,6 +87,10 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
+    _nameController.text = widget.User.name;
+    _emailController.text = widget.User.email!;
+    _preferencesController.text = widget.User.preferences!;
+    //switchstate = widget.User.notifications!;
     return Scaffold(
       appBar: AppBar(
         title: Center(
@@ -84,8 +106,8 @@ class _ProfileState extends State<Profile> {
           // Avatar
           CircleAvatar(
             radius: 150,
-            backgroundImage: _image != null
-                ? FileImage(_image!)
+            backgroundImage: widget.User.image != null
+                ? MemoryImage(base64Decode(widget.User.image!.split(',').last))
                 : NetworkImage(
               'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
             ) as ImageProvider,

@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
+import 'package:hedieatymobileapplication/Home.dart';
 import 'package:image_picker/image_picker.dart';
 import 'signup.dart';
 
@@ -8,15 +11,25 @@ class SignIn extends StatefulWidget {
   _SignInState createState() => _SignInState();
 }
 
-class _SignInState extends State<SignIn> {
+class _SignInState extends State<SignIn>{
+  final Databaseclass db = Databaseclass();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _submitForm() {
+  void _submitForm() async{
     if (_formKey.currentState!.validate()) {
       final String phoneNumber = _phoneNumberController.text.trim();
       final String password = _passwordController.text.trim();
+
+      //List<Map<String,dynamic>> response =  db.readData("SELECT * FROM Users WHERE PhoneNumber='${phoneNumber}' and Password='${password}'");
+      Friend user = await Friend.getuser(phoneNumber, password);
+      if(user!=null){
+        List<Friend> friendlist = await Friend.getFriends(user.id);
+        user.friendlist = friendlist;
+        print(user.id);
+        Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:user)));
+      }
 
     }
   }
