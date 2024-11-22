@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'SignIn.dart';
+import 'Base Classes/Friend.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -82,7 +83,7 @@ class _SignUpState extends State<Signup> {
 //     return mydb;
 //   }
 
-  void _submitForm() async{
+  void _submitForm(BuildContext context) async{
     if (_formKey.currentState!.validate()) {
       final String name = _nameController.text.trim();
       final String email = _emailController.text.trim();
@@ -92,16 +93,64 @@ class _SignUpState extends State<Signup> {
       final File? image = _selectedImage;
       final imagebytes = await File(image!.path).readAsBytes();
       String encodedim = base64Encode(imagebytes);
-      print(await db.insertData("INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password,Image) VALUES ('${name}', '${email}', '${preferences}', '${phoneNumber}', '${password}','${encodedim}');"));
-      // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('1', '2');");
-      // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('2', '1');");
-      print("User inserted successfully");
+
+      if(await Friend.getUserByPhoneNumber(phoneNumber)){
+        showCustomSnackBar(context, "Phone number already registered");
+      }
+      else{
+        print(await db.insertData("INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password,Image,Notifications,UpcomingEvents) VALUES ('${name}', '${email}', '${preferences}', '${phoneNumber}', '${password}','${encodedim}',0,0);"));
+        showCustomSnackBar(context, "Account Registered Successfully!",backgroundColor: Colors.green);
+        _nameController.clear();
+        _emailController.clear();
+        _preferencesController.clear();
+        _phoneNumberController.clear();
+        _passwordController.clear();
+        image.delete();
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Signup()));
+        // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('1', '2');");
+        // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('2', '1');");
+        print("User inserted successfully");
+      }
+
 
       // Handle sign-up logic
     }
   }
 
 
+
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,  // Customize the icon
+            color: Colors.white,
+          ),
+          SizedBox(width: 8), // Add some space between the icon and the text
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +260,9 @@ class _SignUpState extends State<Signup> {
                 SizedBox(height: 16),
                 // Submit Button
                 ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: (){
+                    _submitForm(context);
+                  },
                   child: Text('Submit'),
                 ),
                 SizedBox(height: 16),

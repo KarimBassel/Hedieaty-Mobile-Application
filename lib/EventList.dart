@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
 import 'package:hedieatymobileapplication/GiftList.dart';
 import 'Base Classes/Event.dart';
 
 class EventListPage extends StatefulWidget {
   final bool isOwner;
-  EventListPage({required this.isOwner});
+  Friend User;
+  Friend? friend;
+  EventListPage({required this.isOwner,required this.User,this.friend});
 
   @override
   _EventListPageState createState() => _EventListPageState();
@@ -12,11 +15,11 @@ class EventListPage extends StatefulWidget {
 
 class _EventListPageState extends State<EventListPage> {
 
-  List<Event> events = [
-    Event(name: 'Conference', category: 'Business', status: 'Upcoming'),
-    Event(name: 'Birthday Party', category: 'Personal', status: 'Past'),
-    Event(name: 'Workshop', category: 'Education', status: 'Current'),
-  ];
+  // List<Event> events = [
+  //   Event(name: 'Conference', category: 'Business', status: 'Upcoming'),
+  //   Event(name: 'Birthday Party', category: 'Personal', status: 'Past'),
+  //   Event(name: 'Workshop', category: 'Education', status: 'Current'),
+  // ];
 
   String _sortCriterion = 'Name';
 
@@ -45,9 +48,9 @@ class _EventListPageState extends State<EventListPage> {
         ],
       ),
       body: ListView.builder(
-        itemCount: events.length,
+        itemCount: (widget.isOwner==true)?widget.User.eventlist!.length:widget.friend!.eventlist!.length,
         itemBuilder: (context, index) {
-          final event = events[index];
+          final event = (widget.isOwner==true)?widget.User.eventlist![index]:widget.friend!.eventlist![index];
           return ListTile(
             title: Text(event.name,style: TextStyle(fontWeight: FontWeight.bold),),
             subtitle: Row(
@@ -68,8 +71,12 @@ class _EventListPageState extends State<EventListPage> {
                 if(widget.isOwner)
                 IconButton(
                   icon: Icon(Icons.edit),
-                  onPressed: () => _editEvent(event),
-                ),
+                  onPressed: () {
+                    _editEvent(event);
+                    setState(() {
+
+                    });
+                  }),
                 if(widget.isOwner)
                 IconButton(
                   icon: Icon(Icons.delete),
@@ -85,7 +92,12 @@ class _EventListPageState extends State<EventListPage> {
       ),
       floatingActionButton: !widget.isOwner? null :
       FloatingActionButton(
-        onPressed: _addEvent,
+        onPressed: (){
+          _addEvent();
+          setState(() {
+
+          });
+        },
         backgroundColor: Colors.orangeAccent,
         child: Icon(Icons.add,color: Colors.white,),
       ),
@@ -94,7 +106,7 @@ class _EventListPageState extends State<EventListPage> {
 
   void _sortEvents() {
     setState(() {
-      events.sort((a, b) {
+      widget.User.eventlist!.sort((a, b) {
         switch (_sortCriterion) {
           case 'Category':
             return a.category.compareTo(b.category);
@@ -108,74 +120,243 @@ class _EventListPageState extends State<EventListPage> {
     });
   }
   void _showEventDialog({Event? event}) {
+    // Controllers for the existing and new attributes
     final nameController = TextEditingController(text: event?.name);
     final categoryController = TextEditingController(text: event?.category);
-    final statusController = TextEditingController(text: event?.status);
+    final locationController = TextEditingController(text: event?.location);
+    final descriptionController = TextEditingController(text: event?.description);
+
+    // A variable to hold the selected date
+    DateTime? selectedDate = event?.date;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(event == null ? 'Add Event' : 'Edit Event'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: 'Event Name'),
-              ),
-              TextField(
-                controller: categoryController,
-                decoration: InputDecoration(labelText: 'Category'),
-              ),
-              TextField(
-                controller: statusController,
-                decoration: InputDecoration(labelText: 'Status'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final name = nameController.text;
-                final category = categoryController.text;
-                final status = statusController.text;
+        return StatefulBuilder(
+          builder: (context, setState) { // Use StatefulBuilder to manage dialog state
+            return AlertDialog(
+              title: Text(event == null ? 'Add Event' : 'Edit Event'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: InputDecoration(labelText: 'Event Name'),
+                    ),
+                    TextField(
+                      controller: categoryController,
+                      decoration: InputDecoration(labelText: 'Category'),
+                    ),
+                    SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () async {
+                        // Show the date picker
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate ?? DateTime.now(),
+                          firstDate: DateTime(2000), // Minimum date
+                          lastDate: DateTime(2100), // Maximum date
+                        );
 
-                setState(() {
-                  if (event == null) {
-                    events.add(Event(name: name, category: category, status: status));
-                  } else {
-                    event.name = name;
-                    event.category = category;
-                    event.status = status;
-                  }
-                });
+                        // Update the selected date and refresh dialog UI
+                        if (pickedDate != null) {
+                          setState(() {
+                            selectedDate = pickedDate;
+                          });
+                        }
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Text(
+                              'Date',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16.0,
+                              horizontal: 12.0,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  selectedDate != null
+                                      ? '${selectedDate!.toLocal()}'.split(' ')[0]
+                                      : 'Select a date',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                Icon(Icons.calendar_today, color: Colors.blue),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    TextField(
+                      controller: locationController,
+                      decoration: InputDecoration(labelText: 'Location'),
+                    ),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final name = nameController.text;
+                    final category = categoryController.text;
+                    final location = locationController.text;
+                    final description = descriptionController.text;
 
-                Navigator.of(context).pop();
-              },
-              child: Text('Save'),
-            ),
-          ],
+                    if (selectedDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please select a date')),
+                      );
+                      return;
+                    }
+
+                    // Automatically calculate the status
+                    final DateTime today = DateTime.now();
+                    final String status = selectedDate!.isBefore(today)
+                        ? 'Completed'
+                        : 'Upcoming';
+
+                    if (event == null) {
+                      // Add new event
+                      widget.User.eventlist!.add(Event(
+                        name: name,
+                        category: category,
+                        status: status,
+                        date: selectedDate,
+                        location: location,
+                        description: description,
+                        userId: widget.User.id,
+                      ));
+
+
+                      await Event.insertEvent(Event(
+                        name: name,
+                        category: category,
+                        status: status,
+                        date: selectedDate,
+                        location: location,
+                        description: description,
+                        userId: widget.User.id,
+                      ));
+
+                      showCustomSnackBar(context,"Event Added Successfully",backgroundColor: Colors.green);
+
+                    } else {
+                      // Update existing event
+                      event.name = name;
+                      event.category = category;
+                      event.status = status;
+                      event.date = selectedDate;
+                      event.location = location;
+                      event.description = description;
+                      bool? updateStatus = await Event.updateEvent(event);
+                      print(updateStatus);
+
+                      showCustomSnackBar(context,"Event Updated Successfully",backgroundColor: Colors.green);
+
+                    }
+                    // List<Event> eventlist = await Friend.getEvents(widget.User.id);
+                    // widget.User.eventlist = eventlist;
+                    widget.User = await Friend.getUserObject(widget.User.id!);
+                    setState(() {
+
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
+
+
+
+
+
   void _addEvent() {
     _showEventDialog();
+    setState(() {
+
+    });
   }
 
   void _editEvent(Event event) {
     _showEventDialog(event: event);
-  }
-  void _deleteEvent(Event event) {
     setState(() {
-      events.remove(event);
+
     });
   }
+  void _deleteEvent(Event event) async{
+    bool? deletestatus = await Event.deleteEvent(event.id!);
+    print(deletestatus);
+    showCustomSnackBar(context,"Event Deleted Successfully",backgroundColor: Colors.green);
+    setState(() {
+      widget.User.eventlist!.remove(event);
+    });
+  }
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,  // Customize the icon
+            color: Colors.white,
+          ),
+          SizedBox(width: 8), // Add some space between the icon and the text
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
 }

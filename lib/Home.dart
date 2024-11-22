@@ -8,7 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'FriendCard.dart';
 import 'Base Classes/Friend.dart';
-
+import 'Base Classes/Event.dart';
+//import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 
 
 class Home extends StatefulWidget {
@@ -23,6 +24,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   Databaseclass? db;
+  List<Friend>? filteredfriends;
   // final List<Friend> friends = [
   //   Friend(
   //     image:
@@ -48,10 +50,15 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     db = Databaseclass();
+    filteredfriends=widget.User.friendlist;
   }
+
+
+
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar:  AppBar(
 
@@ -62,8 +69,7 @@ class _HomeState extends State<Home> {
               tooltip: "My Profile",
               iconSize: 35,
               onPressed: ()async {
-                Friend? uptodate = await Friend.getUserById(widget.User.id!);
-
+                Friend? uptodate = await Friend.getUserObject(widget.User.id!);
                 widget.User=uptodate!;
                 Navigator.push(
                   context,
@@ -76,6 +82,9 @@ class _HomeState extends State<Home> {
               child: SizedBox(
                 height: 40,
                 child: SearchBar(
+                  onChanged: (val){
+                    _filterFriends(val);
+                  },
                   padding: const MaterialStatePropertyAll<EdgeInsets>(
                     EdgeInsets.symmetric(horizontal: 16.0),
                   ),
@@ -97,9 +106,10 @@ class _HomeState extends State<Home> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: ()async {
+                widget.User = await Friend.getUserObject(widget.User.id!);
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => EventListPage(isOwner: true,)));
+                    builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orangeAccent,
@@ -121,7 +131,7 @@ class _HomeState extends State<Home> {
           ),
           SizedBox(height: 20),
 
-          ...widget.User.friendlist!.map((friend) =>
+          ...filteredfriends!.map((friend) =>
               Column(
                 children: [
                   ListTile(
@@ -142,7 +152,7 @@ class _HomeState extends State<Home> {
                         borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Upcoming Events: ${friend.upev!}',
+                          'Upcoming Events: ${friend.upev??0}',
                         style: TextStyle(
                         fontSize: 13,
                         color: Colors.white,
@@ -152,11 +162,11 @@ class _HomeState extends State<Home> {
                         ),
                       ],
                     ),
-                    onTap: () {
-
+                    onTap: () async{
+                      friend = await Friend.getUserObject(friend.id!);
                       Navigator.push(context, MaterialPageRoute(
                           builder: (context) =>
-                              EventListPage(isOwner: false,)));
+                              EventListPage(isOwner: false,User: widget.User,friend:friend)));
                     },
                   ),
                   Divider(),
@@ -187,17 +197,8 @@ class _HomeState extends State<Home> {
           PopupMenuItem(
             value: 'contacts',
             child: Text('Add Friend from Contacts'),
-            onTap: () {
-              setState(() {
-                // widget.User.friendlist!.add(
-                //   Friend(
-                //     image:
-                //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-                //     name: 'New Friend (From Contacts)',
-                //     upev: 6,
-                //   ),
-                // );
-              });
+            onTap: () async {
+              print("contacts");
             },
           ),
         ],
@@ -234,9 +235,19 @@ class _HomeState extends State<Home> {
         ),
         TextButton(
           onPressed: ()async {
+            print(widget.User.id!);
             final phone = PhoneController.text;
-            Friend? newfriend = await Friend.registerFriend(widget.User.id!, phone);
-            widget.User.friendlist!.add(newfriend!);
+            if(widget.User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
+            dynamic newfriend = await Friend.registerFriend(widget.User.id!, phone);
+            //returned false from search query of the phone number
+            if(newfriend is bool){
+              showCustomSnackBar(context,"User Not Found");
+            }
+            else{
+              Friend updatedUser = await Friend.getUserObject(widget.User.id!);
+              widget.User=updatedUser!;
+              filteredfriends = widget.User.friendlist;
+            }
             setState(() {
 
             });
@@ -249,5 +260,46 @@ class _HomeState extends State<Home> {
     );
   });
 }
+  void _filterFriends(String query) {
+    final filtered = widget.User.friendlist!.where((friend) {
+      return friend.name.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredfriends = filtered;
+    });
+  }
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,  // Customize the icon
+            color: Colors.white,
+          ),
+          SizedBox(width: 8), // Add some space between the icon and the text
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
 import 'package:hedieatymobileapplication/Home.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,15 +24,55 @@ class _SignInState extends State<SignIn>{
       final String password = _passwordController.text.trim();
 
       //List<Map<String,dynamic>> response =  db.readData("SELECT * FROM Users WHERE PhoneNumber='${phoneNumber}' and Password='${password}'");
-      Friend user = await Friend.getuser(phoneNumber, password);
-      if(user!=null){
-        List<Friend> friendlist = await Friend.getFriends(user.id);
-        user.friendlist = friendlist;
+      dynamic user = await Friend.getuser(phoneNumber, password);
+      if(user is bool){
+        showCustomSnackBar(context, "Incorrect Phone or Password");
+      }
+      else{
+        // List<Friend> friendlist = await Friend.getFriends(user.id);
+        // user.friendlist = friendlist;
+        // List<Event> eventlist = await Friend.getEvents(user.id);
+        // user.eventlist = eventlist;
+        user = await Friend.getUserObject(user.id);
         print(user.id);
         Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:user)));
       }
 
     }
+  }
+
+
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,  // Customize the icon
+            color: Colors.white,
+          ),
+          SizedBox(width: 8), // Add some space between the icon and the text
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override

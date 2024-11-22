@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
 
 class Friend {
   int? id;
@@ -12,8 +13,9 @@ class Friend {
   String? image;
   String? PhoneNumber;
   String? password;
-  bool? notifications;
+  int? notifications;
   List<Friend>? friendlist;
+  List<Event>? eventlist;
 
   Friend({
     this.id,
@@ -29,7 +31,7 @@ class Friend {
   });
 
   factory Friend.fromMap(Map<String, dynamic> map) {
-    //print(map["Name"]);
+    print(map["Notifications"]);
     return Friend(
       id: map['ID'],
       name: map['Name'],
@@ -37,6 +39,7 @@ class Friend {
       preferences: map['Preferences'],
       upev: map["upev"],
       image: map['Image'],
+      notifications: map["Notifications"],
       PhoneNumber: map['PhoneNumber'],
     );
   }
@@ -53,13 +56,14 @@ class Friend {
     };
   }
 
-  static Future<Friend> getuser(String phone, String pass) async {
+  static Future<dynamic> getuser(String phone, String pass) async {
     final db = await Databaseclass();
 
     List<Map<String, dynamic>> response = await db.readData(
         "SELECT * FROM Users WHERE PhoneNumber='${phone}' and Password='${pass}'");
 
-    return Friend.fromMap(response[0]);
+    if(response.isEmpty)return false;
+    else return Friend.fromMap(response[0]);
   }
 
   static Future<List<Friend>> getFriends(var userID) async {
@@ -108,7 +112,31 @@ class Friend {
     return friendsList;
   }
 
-  static Future<Friend?> registerFriend(int userID, String friendPhone) async {
+  static Future<List<Event>> getEvents(var userID) async {
+    final db = await Databaseclass();
+
+    // Step 1: Retrieve the events associated with the UserID
+    List<Map<String, dynamic>> eventsResponse = await db.readData(
+        "SELECT * FROM Events WHERE UserID='${userID}'"
+    );
+    print(eventsResponse.isEmpty);
+    // Step 2: Create a list to hold Event objects
+    List<Event> eventsList = [];
+    if (eventsResponse.isEmpty) return eventsList;
+
+    // Step 3: Convert the events data to Event objects
+    for (var eventData in eventsResponse) {
+      Event event = Event.fromMap(eventData);
+      eventsList.add(event);
+    }
+
+    // Step 4: Return the list of events
+    return eventsList;
+  }
+
+
+
+  static Future<dynamic> registerFriend(int userID, String friendPhone) async {
     final db = await Databaseclass();
 
     try {
@@ -131,7 +159,7 @@ class Friend {
 
       } else {
         print('Friend with phone number $friendPhone not found.');
-        return null; // Friend not found
+        return false; // Friend not found
       }
     } catch (e) {
       // Catch any errors
@@ -173,17 +201,17 @@ class Friend {
     }
   }
 
-  static Future<Friend?> getUserById(int id) async {
+  static Future<Friend> getUserById(int id) async {
     final db = await Databaseclass();
 
-    try {
+
       // Step 1: Fetch the user
       String userQuery = "SELECT * FROM Users WHERE ID = $id";
       List<Map<String, dynamic>> userResult = await db.readData(userQuery);
 
       if (userResult.isEmpty) {
         print("No user found with ID: $id");
-        return null; // No user found
+         // No user found
       }
 
       // Convert the user data to a Friend object
@@ -209,12 +237,68 @@ class Friend {
       user.friendlist = friends;
 
       return user;
-    } catch (e) {
-      print("Error fetching user and their friends: $e");
-      return null; // Handle error
-    }
+
+  }
+  static Future<Friend> getUserObject(int UserID)async{
+    final db = await Databaseclass();
+    Friend user = await Friend.getUserById(UserID);
+    List<Friend> friendlist = await Friend.getFriends(UserID);
+    user.friendlist = friendlist;
+    List<Event> eventlist = await Friend.getEvents(UserID);
+    user.eventlist = eventlist;
+    return user;
+
   }
 
+  static Future<bool> getUserByPhoneNumber(String phoneNumber) async {
+    final db = await Databaseclass();
+
+    // Step 1: Fetch the user based on the phone number
+    String userQuery = "SELECT * FROM Users WHERE PhoneNumber = '$phoneNumber'";
+    List<Map<String, dynamic>> userResult = await db.readData(userQuery);
+
+    if (userResult.isEmpty) {
+      // If no user is found with the given phone number, return false
+      return false;
+    }
+
+    // Step 2: If user is found, return true
+    return true;
+  }
+
+
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,  // Customize the icon
+            color: Colors.white,
+          ),
+          SizedBox(width: 8), // Add some space between the icon and the text
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
 
 }

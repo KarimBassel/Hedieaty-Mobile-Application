@@ -17,7 +17,7 @@ class Profile extends StatefulWidget {
 
 class _ProfileState extends State<Profile> {
   File? _image;
-  bool switchstate = false;
+  bool switchstate=false;
   TextEditingController _nameController = TextEditingController(text: "Cristiano Ronaldo");
   TextEditingController _emailController = TextEditingController(text: "Cristiano@eng.asu.edu.eg");
   TextEditingController _preferencesController = TextEditingController(text: "Electronics, Sports");
@@ -90,7 +90,7 @@ class _ProfileState extends State<Profile> {
     _nameController.text = widget.User.name;
     _emailController.text = widget.User.email!;
     _preferencesController.text = widget.User.preferences!;
-    //switchstate = widget.User.notifications!;
+    switchstate = (widget.User.notifications==0)?false:true;
     return Scaffold(
       appBar: AppBar(
         title: Center(
@@ -161,7 +161,10 @@ class _ProfileState extends State<Profile> {
                   ),
                   Switch(
                     value: switchstate,
-                    onChanged: (value) {
+                    onChanged: (value) async{
+                      bool update = await Friend.updateUser(widget.User.id!,"Notifications",(value==false)?0:1);
+                      Friend? updateduser = await Friend.getUserObject(widget.User.id!);
+                      widget.User=updateduser!;
                       setState(() {
                         switchstate = value;
                       });
@@ -176,8 +179,10 @@ class _ProfileState extends State<Profile> {
 
           SizedBox(height: 20),
 
-          _buildNavigationButton("Go to Events List", () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true)));
+          _buildNavigationButton("Go to Events List", ()async {
+            Friend? updateduser = await Friend.getUserObject(widget.User.id!);
+            widget.User=updateduser!;
+            Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
           }),
 
           SizedBox(height: 20),

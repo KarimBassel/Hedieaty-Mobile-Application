@@ -41,9 +41,11 @@ class Databaseclass {
               CREATE TABLE Events (
   ID INTEGER PRIMARY KEY AUTOINCREMENT,
   Name TEXT NOT NULL,
-  Date DATE NOT NULL,
+  Date TEXT NOT NULL,
   Location TEXT,
   Description TEXT,
+  Category TEXT,
+  Status TEXT,
   UserID INTEGER NOT NULL,
   FOREIGN KEY (UserID) REFERENCES Users(ID)
 );
@@ -56,7 +58,7 @@ CREATE TABLE Gifts (
   Description TEXT,
   Category TEXT,
   Price REAL,
-  Status TEXT NOT NULL,
+  Status INTEGER DEFAULT 0,
   EventID INTEGER NOT NULL,
   FOREIGN KEY (EventID) REFERENCES Events(ID)
 );
@@ -72,12 +74,31 @@ CREATE TABLE Friends (
 );
 ''');
 
+
+
+      db.execute('''INSERT INTO Events (Name, Date, Location, Description, Category, Status, UserID) VALUES
+  ('Birthday Party', '2024-12-15', 'Johns House', 'A fun celebration with friends and family', 'Birthday','Upcoming', 1),
+  ('Wedding Anniversary', '2024-11-30', 'Janes House', 'Celebrating our special day', 'Anniversary', 'Upcoming',1),
+  ('Tech Conference', '2024-10-25', 'Convention Center', 'A conference on the latest tech trends', 'Completed', 'Upcoming',1),
+  ('Art Exhibition', '2024-09-20', 'Art Gallery', 'An exhibition showcasing local artists', 'Completed', 'Upcoming',1);
+''');
+
+      db.execute('''INSERT INTO Gifts (Name, Description, Category, Price, Status, EventID) VALUES
+  ('Smartwatch', 'A gift for tech lovers', 'Technology', 199.99, 0, 3),
+  ('Painting Set', 'Perfect for art enthusiasts', 'Art', 49.99, 0, 4),
+  ('Concert Tickets', 'For the music lovers', 'Entertainment', 150.00, 0, 1),
+  ('Cookbook', 'A collection of delicious recipes', 'Books', 20.00, 0, 2);
+''');
+
+
+
+
           print("Database has been created .......");
         });
     return mydb;
   }
 
-  Future<List<Map<String, dynamic>>> readData(String SQL) async {
+  readData(String SQL) async {
     Database? mydata = await MyDataBase;
     return  await mydata!.rawQuery(SQL);
 

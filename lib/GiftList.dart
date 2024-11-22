@@ -8,7 +8,7 @@ import 'Base Classes/Event.dart';
 
 
 class GiftListPage extends StatefulWidget {
-  final Event event;
+  Event event;
   final bool isOwner;
 
   GiftListPage({required this.event,required this.isOwner});
@@ -41,7 +41,7 @@ class _GiftListPageState extends State<GiftListPage> {
           children: [
             Text('Event: ${widget.event.name}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Text('Category: ${widget.event.category}', style: TextStyle(fontSize: 16)),
-            Text('Status: ${widget.event.status}', style: TextStyle(fontSize: 16)),
+            //Text('Status: ${widget.event.status}', style: TextStyle(fontSize: 16)),
             SizedBox(height: 16.0),
             Divider(),
 
