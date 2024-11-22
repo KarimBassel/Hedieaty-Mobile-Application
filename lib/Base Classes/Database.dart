@@ -57,7 +57,8 @@ CREATE TABLE Gifts (
   Name TEXT NOT NULL,
   Description TEXT,
   Category TEXT,
-  Price REAL,
+  Price INTEGER,
+  Image TEXT,
   Status INTEGER DEFAULT 0,
   EventID INTEGER NOT NULL,
   FOREIGN KEY (EventID) REFERENCES Events(ID)
@@ -83,12 +84,7 @@ CREATE TABLE Friends (
   ('Art Exhibition', '2024-09-20', 'Art Gallery', 'An exhibition showcasing local artists', 'Completed', 'Upcoming',1);
 ''');
 
-      db.execute('''INSERT INTO Gifts (Name, Description, Category, Price, Status, EventID) VALUES
-  ('Smartwatch', 'A gift for tech lovers', 'Technology', 199.99, 0, 3),
-  ('Painting Set', 'Perfect for art enthusiasts', 'Art', 49.99, 0, 4),
-  ('Concert Tickets', 'For the music lovers', 'Entertainment', 150.00, 0, 1),
-  ('Cookbook', 'A collection of delicious recipes', 'Books', 20.00, 0, 2);
-''');
+
 
 
 

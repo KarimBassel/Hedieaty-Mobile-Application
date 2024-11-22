@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
+import 'Gift.dart';
 
 class Friend {
   int? id;
@@ -120,6 +121,7 @@ class Friend {
         "SELECT * FROM Events WHERE UserID='${userID}'"
     );
     print(eventsResponse.isEmpty);
+
     // Step 2: Create a list to hold Event objects
     List<Event> eventsList = [];
     if (eventsResponse.isEmpty) return eventsList;
@@ -127,12 +129,33 @@ class Friend {
     // Step 3: Convert the events data to Event objects
     for (var eventData in eventsResponse) {
       Event event = Event.fromMap(eventData);
+
+      // Step 4: Retrieve the gifts associated with the event
+      List<Map<String, dynamic>> giftsResponse = await db.readData(
+          "SELECT * FROM Gifts WHERE EventID=${event.id}"
+      );
+
+      // Step 5: Create a list to hold Gift objects for the event
+      List<Gift> giftsList = [];
+      if (giftsResponse.isNotEmpty) {
+        // Convert gift data to Gift objects and add them to the list
+        for (var giftData in giftsResponse) {
+          Gift gift = Gift.fromMap(giftData);
+          giftsList.add(gift);
+        }
+      }
+
+      // Step 6: Add the gifts list to the event
+      event.giftlist = giftsList;
+
+      // Add the event to the list of events
       eventsList.add(event);
     }
 
-    // Step 4: Return the list of events
+    // Step 7: Return the list of events with their associated gifts
     return eventsList;
   }
+
 
 
 

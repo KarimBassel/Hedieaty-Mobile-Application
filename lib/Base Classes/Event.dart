@@ -12,6 +12,7 @@ class Event {
   DateTime? date;
   String? location;
   String? description;
+  List<Gift>? giftlist;
   int? userId;
 
   Event({required this.name, required this.category, required this.status,this.date,this.location,this.description,this.id,this.userId});
@@ -84,7 +85,13 @@ class Event {
 
       // If the result is not empty, map the first row to an Event object
       if (result.isNotEmpty) {
-        return Event.fromMap(result.first);
+        Event event = Event.fromMap(result.first);
+
+        // Fetch the associated gifts for this event
+        List<Gift> giftList = await Gift.getGiftList(event.id!);
+        event.giftlist=giftList;
+
+        return event;
       } else {
         print("No event found with ID $id.");
         return null;

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -82,7 +83,7 @@ class _GiftDetailsState extends State<GiftDetails> {
               shape: BoxShape.circle,
               image: DecorationImage(
                 image: widget.gift.image != null
-                    ? FileImage(widget.gift.image!)
+                    ? MemoryImage(base64Decode(widget.gift.image!.split(',').last))
                     : NetworkImage(
                   'https://shop.switch.com.my/cdn/shop/files/iPhone_15_Pink_PDP_Image_Position-1__GBEN_7cf60425-0d5a-4bc9-bfd9-645b9c86e68e.jpg?v=1717694179&width=823',
                 ) as ImageProvider,

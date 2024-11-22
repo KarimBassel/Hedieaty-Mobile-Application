@@ -85,7 +85,13 @@ class _EventListPageState extends State<EventListPage> {
               ],
             ),
             onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => GiftListPage(event: event,isOwner: widget.isOwner,)));
+              if(widget.isOwner){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => GiftListPage(event: event,isOwner: widget.isOwner,User: widget.User,)));
+              }
+              else{
+
+              }
+
             },
           );
         },

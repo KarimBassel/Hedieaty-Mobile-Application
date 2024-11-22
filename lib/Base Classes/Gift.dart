@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 
 class Gift {
   int? id;
@@ -8,8 +9,8 @@ class Gift {
   String category;
   String status;
   String description;
-  double price;
-  File? image;
+  int price;
+  String? image;
 
   Gift({
     required this.name,
@@ -21,6 +22,22 @@ class Gift {
     this.eventId,
     this.id
   });
+
+  factory Gift.fromMap(Map<String, dynamic> map) {
+    print(map);
+
+    return Gift(
+      id: map['ID'],
+      name: map['Name'],
+      description: map['Description'],
+      price: map['Price'],
+      category: map["Category"],
+      status: map["Status"],
+      eventId: map['EventID'],
+      image: map['Image'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -33,4 +50,47 @@ class Gift {
       'image' : image,
     };
   }
+ static Future<List<Gift>> getGiftList(int eventId) async {
+    final db = await Databaseclass();
+    String query = "SELECT * FROM Gifts WHERE EventID=${eventId}";
+    List<Map<String, dynamic>> result = await db.readData(query);
+
+    List<Gift> giftlist = [];
+    if (result.isEmpty) return giftlist;
+
+    // Step 3: Convert the events data to Event objects
+    for (var eventData in result) {
+      Gift gift = Gift.fromMap(eventData);
+      giftlist.add(gift);
+    }
+    return giftlist;
+  }
+
+  static Future<bool> addGift(Gift gift) async {
+    final db = await Databaseclass();
+
+    try {
+      // Prepare the SQL query to insert a new gift into the Gifts table
+      String query = """
+      INSERT INTO Gifts (Name, Description, Category, Price, Image, Status, EventID)
+      VALUES ('${gift.name}', '${gift.description}', '${gift.category}', ${gift.price}, '${gift.image}', '${gift.status}', ${gift.eventId})
+    """;
+
+      // Execute the query using insertData (assuming insertData method exists in Databaseclass)
+      int result = await db.insertData(query);  // Returns number of affected rows
+
+      if (result > 0) {
+        print("Gift added successfully!");
+        return true; // Return true if insertion was successful
+      } else {
+        print("Failed to add gift.");
+        return false;
+      }
+    } catch (e) {
+      print("Error adding gift: $e");
+      return false; // Return false if there was an error
+    }
+  }
+
+
 }

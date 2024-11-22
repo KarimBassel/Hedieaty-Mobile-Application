@@ -1,28 +1,32 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/GiftDetails.dart';
 import 'package:image_picker/image_picker.dart';
 import 'Base Classes/Gift.dart';
 import 'Base Classes/Event.dart';
-
+import 'Base Classes/Friend.dart';
 
 class GiftListPage extends StatefulWidget {
   Event event;
+  Friend User;
+  Friend? friend;
   final bool isOwner;
 
-  GiftListPage({required this.event,required this.isOwner});
+  GiftListPage({required this.event,required this.isOwner,required this.User,this.friend});
 
   @override
   _GiftListPageState createState() => _GiftListPageState();
 }
 
 class _GiftListPageState extends State<GiftListPage> {
-  List<Gift> gifts = [
-    Gift(name: 'Car', category: 'Toys', status: 'Available', description: 'Toy car', price: 20.0,),
-    Gift(name: 'Atomic Habits', category: 'Books', status: 'Pledged', description: 'Storybook', price: 15.0),
-    Gift(name: 'Iphone 15', category: 'Electronics', status: 'Available', description: 'Headphones', price: 50.0),
-  ];
+  // List<Gift> gifts = [
+  //   Gift(name: 'Car', category: 'Toys', status: 'Available', description: 'Toy car', price: 20,),
+  //   Gift(name: 'Atomic Habits', category: 'Books', status: 'Pledged', description: 'Storybook', price: 15),
+  //   Gift(name: 'Iphone 15', category: 'Electronics', status: 'Available', description: 'Headphones', price: 50),
+  // ];
 
   String _sortCriterion = 'Name';
   final ImagePicker _picker = ImagePicker();
@@ -65,15 +69,15 @@ class _GiftListPageState extends State<GiftListPage> {
             // Gifts List
             Expanded(
               child: ListView.builder(
-                itemCount: gifts.length,
+                itemCount: widget.event.giftlist!.length,
                 itemBuilder: (context, index) {
-                  final gift = gifts[index];
+                  final gift = widget.event.giftlist![index];
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
                     color: gift.status == 'Pledged' ? Colors.amber[100] : Colors.white,
                     child: ListTile(
                       leading: gift.image != null
-                          ? Image.file(gift.image!, width: 50, height: 50, fit: BoxFit.cover)
+                          ? Image.memory(base64Decode(gift.image!.split(',').last))
                           : Icon(Icons.image, size: 50),
                       title: Text(gift.name,style: TextStyle(fontWeight: FontWeight.bold),),
                       subtitle: Row(
@@ -127,7 +131,7 @@ class _GiftListPageState extends State<GiftListPage> {
 
   void _sortGifts() {
     setState(() {
-      gifts.sort((a, b) {
+      widget.event.giftlist!.sort((a, b) {
         switch (_sortCriterion) {
           case 'Category':
             return a.category.compareTo(b.category);
@@ -148,14 +152,28 @@ class _GiftListPageState extends State<GiftListPage> {
     final descriptionController = TextEditingController(text: gift?.description);
     final priceController = TextEditingController(text: gift?.price.toString());
 
-    File? imageFile = gift?.image;
+    // Variable to store the selected image file
+    File? imageFile;
 
+    // Function to pick an image from the gallery
     void _pickImage() async {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         setState(() {
           imageFile = File(pickedFile.path);
         });
+      }
+    }
+
+    // Decode base64 image if the gift has an image
+    Image? _getBase64Image(String base64Image) {
+      try {
+        // Decode the base64 string to bytes and display the image
+        Uint8List bytes = base64Decode(base64Image);
+        return Image.memory(bytes);
+      } catch (e) {
+        print("Error decoding base64 image: $e");
+        return null;
       }
     }
 
@@ -178,33 +196,53 @@ class _GiftListPageState extends State<GiftListPage> {
                   onPressed: _pickImage,
                   child: Text('Pick Image'),
                 ),
-                if (imageFile != null) Image.file(imageFile!, width: 100, height: 100),
+                // Display the image (either base64 or selected image)
+                if (gift?.image != null && gift?.image!.isNotEmpty == true)
+                  _getBase64Image(gift!.image!)!,
+                if (imageFile != null)
+                  Image.file(imageFile!, width: 100, height: 100),
               ],
             ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
-              onPressed: () {
-                setState(() {
-                  if (gift == null) {
-                    gifts.add(Gift(
-                      name: nameController.text,
-                      category: categoryController.text,
-                      status: statusController.text,
-                      description: descriptionController.text,
-                      price: double.tryParse(priceController.text) ?? 0.0,
-                      image: imageFile,
-                    ));
-                  } else {
-                    gift.name = nameController.text;
-                    gift.category = categoryController.text;
-                    gift.status = statusController.text;
-                    gift.description = descriptionController.text;
-                    gift.price = double.tryParse(priceController.text) ?? gift.price;
-                    gift.image = imageFile;
-                  }
-                });
+              onPressed: () async {
+                final imagebytes = await File(imageFile!.path).readAsBytes();
+                String encodedim = base64Encode(imagebytes);
+
+                if (gift == null) {
+                  // Adding a new gift
+                  widget.event.giftlist!.add(Gift(
+                    name: nameController.text,
+                    category: categoryController.text,
+                    status: statusController.text,
+                    description: descriptionController.text,
+                    price: int.tryParse(priceController.text) ?? 0,
+                    image: encodedim,
+                    eventId: widget.event.id,
+                  ));
+
+                  bool addgift = await Gift.addGift(Gift(
+                    name: nameController.text,
+                    category: categoryController.text,
+                    status: statusController.text,
+                    description: descriptionController.text,
+                    price: int.tryParse(priceController.text) ?? 0,
+                    image: encodedim,
+                    eventId: widget.event.id,
+                  ));
+                } else {
+                  // Editing an existing gift
+                  gift.name = nameController.text;
+                  gift.category = categoryController.text;
+                  gift.status = statusController.text;
+                  gift.description = descriptionController.text;
+                  gift.price = int.tryParse(priceController.text) ?? gift.price;
+                  gift.image = encodedim;
+                }
+
+                setState(() {});
                 Navigator.of(context).pop();
               },
               child: Text('Save'),
@@ -221,7 +259,7 @@ class _GiftListPageState extends State<GiftListPage> {
 
   void _deleteGift(Gift gift) {
     setState(() {
-      gifts.remove(gift);
+      widget.event.giftlist!.remove(gift);
     });
   }
 }
