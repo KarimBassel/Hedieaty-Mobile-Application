@@ -1,12 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:convert'; // For Base64 encoding
+import 'dart:io'; // For File operations
+import 'dart:typed_data'; // For Uint8List
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'SignIn.dart';
 import 'Base Classes/Friend.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 
 class Signup extends StatefulWidget {
   @override
@@ -14,8 +13,7 @@ class Signup extends StatefulWidget {
 }
 
 class _SignUpState extends State<Signup> {
-
-  Databaseclass db= Databaseclass();
+  Databaseclass db = Databaseclass();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -33,57 +31,8 @@ class _SignUpState extends State<Signup> {
       });
     }
   }
-//   Future<Database> initialize() async {
-//     String mypath = await getDatabasesPath();
-//     print(mypath);
-//     String path = join(mypath, 'hedieaty.db');
-//     Database mydb = await openDatabase(path, version: 1,
-//         onCreate: (db, Version) async {
-//           db.execute('''
-//                   CREATE TABLE Users (
-//   ID INTEGER PRIMARY KEY AUTOINCREMENT,
-//   Name TEXT NOT NULL,
-//   Email TEXT UNIQUE NOT NULL,
-//   Preferences TEXT,
-//   PhoneNumber TEXT NOT NULL,
-//   Password TEXT NOT NULL
-// );
-//
-// CREATE TABLE Events (
-//   ID INTEGER PRIMARY KEY AUTOINCREMENT,
-//   Name TEXT NOT NULL,
-//   Date TEXT NOT NULL,
-//   Location TEXT,
-//   Description TEXT,
-//   UserID INTEGER NOT NULL,
-//   FOREIGN KEY (UserID) REFERENCES Users(ID)
-// );
-//
-// CREATE TABLE Gifts (
-//   ID INTEGER PRIMARY KEY AUTOINCREMENT,
-//   Name TEXT NOT NULL,
-//   Description TEXT,
-//   Category TEXT,
-//   Price REAL,
-//   Status TEXT NOT NULL,
-//   EventID INTEGER NOT NULL,
-//   FOREIGN KEY (EventID) REFERENCES Events(ID)
-// );
-//
-// CREATE TABLE Friends (
-//   UserID INTEGER NOT NULL,
-//   FriendID INTEGER NOT NULL,
-//   PRIMARY KEY (UserID, FriendID),
-//   FOREIGN KEY (UserID) REFERENCES Users(ID),
-//   FOREIGN KEY (FriendID) REFERENCES Users(ID)
-// );
-//       ''');
-//           print("Database has been created .......");
-//         });
-//     return mydb;
-//   }
 
-  void _submitForm(BuildContext context) async{
+  void _submitForm(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final String name = _nameController.text.trim();
       final String email = _emailController.text.trim();
@@ -91,60 +40,50 @@ class _SignUpState extends State<Signup> {
       final String phoneNumber = _phoneNumberController.text.trim();
       final String password = _passwordController.text.trim();
       final File? image = _selectedImage;
-      final imagebytes = await File(image!.path).readAsBytes();
-      String encodedim = base64Encode(imagebytes);
 
-      if(await Friend.getUserByPhoneNumber(phoneNumber)){
+      final imageBytes = await File(image!.path).readAsBytes();
+      String encodedImage = base64Encode(imageBytes);
+
+      if (await Friend.getUserByPhoneNumber(phoneNumber)) {
         showCustomSnackBar(context, "Phone number already registered");
-      }
-      else{
-        print(await db.insertData("INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password,Image,Notifications,UpcomingEvents) VALUES ('${name}', '${email}', '${preferences}', '${phoneNumber}', '${password}','${encodedim}',0,0);"));
-        showCustomSnackBar(context, "Account Registered Successfully!",backgroundColor: Colors.green);
+      } else {
+        print(await db.insertData(
+            "INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password, Image) VALUES ('$name', '$email', '$preferences', '$phoneNumber', '$password', '$encodedImage');"));
+        showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
         _nameController.clear();
         _emailController.clear();
         _preferencesController.clear();
         _phoneNumberController.clear();
         _passwordController.clear();
         image.delete();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Signup()));
-        // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('1', '2');");
-        // await db.insertData("INSERT INTO Friends (UserID, FriendID) VALUES ('2', '1');");
-        print("User inserted successfully");
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
       }
-
-
-      // Handle sign-up logic
     }
   }
-
-
 
   void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
     final snackBar = SnackBar(
       content: Row(
         children: [
           Icon(
-            Icons.error_outline,  // Customize the icon
+            Icons.error_outline,
             color: Colors.white,
           ),
-          SizedBox(width: 8), // Add some space between the icon and the text
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+              style: TextStyle(color: Colors.white, fontSize: 16),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,  // Set the background color
-      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
-      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
-      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
-      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+      backgroundColor: backgroundColor,
+      duration: Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
     );
@@ -167,17 +106,8 @@ class _SignUpState extends State<Signup> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 16),
-                // Simple Image Picker Icon
-                Center(
-                  child: IconButton(
-                    onPressed: _pickImage,
-                    icon: Icon(
-                      Icons.add_photo_alternate_outlined,
-                      size: 50,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
+                // Image Picker Section
+
                 SizedBox(height: 16),
                 // Name Field
                 TextFormField(
@@ -258,9 +188,45 @@ class _SignUpState extends State<Signup> {
                   },
                 ),
                 SizedBox(height: 16),
+
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _selectedImage == null ? "No image selected" : "Image selected",
+                        style: TextStyle(
+                          color: _selectedImage == null ? Colors.red : Colors.green,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      SizedBox(width: 16),
+
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 40, // Adjust the size of the icon
+                          backgroundColor: Colors.transparent,
+                          child: Icon(
+                            Icons.camera_alt,
+                            size: 20,
+                            color: Colors.grey[700],
+                          ),
+
+                        ),
+                      ),
+                      // Space between icon and text
+                      // Text indicating the selection status
+
+                    ],
+                  ),
+                ),
+                SizedBox(width: 16),
                 // Submit Button
                 ElevatedButton(
-                  onPressed: (){
+                  onPressed: () {
                     _submitForm(context);
                   },
                   child: Text('Submit'),
@@ -271,7 +237,7 @@ class _SignUpState extends State<Signup> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SignIn()), // Navigate to SignIn page
+                      MaterialPageRoute(builder: (context) => SignIn()),
                     );
                   },
                   child: Text(

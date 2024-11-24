@@ -2,12 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/EventList.dart';
-import 'package:hedieatymobileapplication/GiftDetails.dart';
 import 'package:image_picker/image_picker.dart';
 import 'Base Classes/Gift.dart';
 import 'Base Classes/Event.dart';
 import 'Base Classes/Friend.dart';
+import 'GiftDetails.dart';
 
 class GiftListPage extends StatefulWidget {
   Event event;
@@ -15,40 +14,29 @@ class GiftListPage extends StatefulWidget {
   Friend? friend;
   final bool isOwner;
 
-  GiftListPage({required this.event,required this.isOwner,required this.User,this.friend});
+  GiftListPage({required this.event, required this.isOwner, required this.User, this.friend});
 
   @override
   _GiftListPageState createState() => _GiftListPageState();
 }
 
 class _GiftListPageState extends State<GiftListPage> {
-  // List<Gift> gifts = [
-  //   Gift(name: 'Car', category: 'Toys', status: 'Available', description: 'Toy car', price: 20,),
-  //   Gift(name: 'Atomic Habits', category: 'Books', status: 'Pledged', description: 'Storybook', price: 15),
-  //   Gift(name: 'Iphone 15', category: 'Electronics', status: 'Available', description: 'Headphones', price: 50),
-  // ];
-
-  String _sortCriterion = 'Name';
   final ImagePicker _picker = ImagePicker();
+  String _sortCriterion = 'Name';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
         title: Text('Gifts for ${widget.event.name}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Event: ${widget.event.name}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text('Category: ${widget.event.category}', style: TextStyle(fontSize: 16)),
-            //Text('Status: ${widget.event.status}', style: TextStyle(fontSize: 16)),
             SizedBox(height: 16.0),
             Divider(),
-
             DropdownButton<String>(
               value: _sortCriterion,
               onChanged: (value) {
@@ -65,7 +53,6 @@ class _GiftListPageState extends State<GiftListPage> {
                   .toList(),
             ),
             SizedBox(height: 8.0),
-
             // Gifts List
             Expanded(
               child: ListView.builder(
@@ -79,52 +66,70 @@ class _GiftListPageState extends State<GiftListPage> {
                       leading: gift.image != null
                           ? Image.memory(base64Decode(gift.image!.split(',').last))
                           : Icon(Icons.image, size: 50),
-                      title: Text(gift.name,style: TextStyle(fontWeight: FontWeight.bold),),
+                      title: Text(gift.name, style: TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.orangeAccent,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text('${gift.category}',style: TextStyle(fontSize: 10,color: Colors.white),)),
-
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.orangeAccent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text('${gift.category}', style: TextStyle(fontSize: 10, color: Colors.white)),
+                          ),
                         ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if(widget.isOwner && gift.status=="Available")
-                          IconButton(
-                            icon: Icon(Icons.edit),
-                            onPressed: () => _editGift(gift),
-                          ),
-                          if(widget.isOwner && gift.status=="Available")
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () => _deleteGift(gift),
-                          ),
+                          if (widget.isOwner && gift.status == "Available")
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                _editGift(gift);
+                                setState(() {
+
+                                });
+                              }
+                            ),
+                          if (widget.isOwner && gift.status == "Available")
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                _deleteGift(gift);
+                                setState(() {
+
+                                });
+                  }
+                            ),
                         ],
                       ),
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => GiftDetails(gift: gift,isOwner: widget.isOwner,isPledged: gift.status =="Pledged"?true : false,)));
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false)),
+                        );
                       },
                     ),
                   );
                 },
               ),
             ),
-
           ],
         ),
       ),
-      floatingActionButton: !widget.isOwner? null :
-      FloatingActionButton(
-        onPressed: _addGift,
+      floatingActionButton: !widget.isOwner
+          ? null
+          : FloatingActionButton(
+        onPressed: (){
+          _addGift();
+          setState(() {
+
+          });
+        } ,
         backgroundColor: Colors.orangeAccent,
-        child: Icon(Icons.add,color: Colors.white,),
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -148,12 +153,18 @@ class _GiftListPageState extends State<GiftListPage> {
   void _showGiftDialog({Gift? gift}) async {
     final nameController = TextEditingController(text: gift?.name);
     final categoryController = TextEditingController(text: gift?.category);
-    final statusController = TextEditingController(text: gift?.status);
     final descriptionController = TextEditingController(text: gift?.description);
     final priceController = TextEditingController(text: gift?.price.toString());
 
+    // Dropdown value for status
+    String status = gift?.status ?? 'Available'; // Default status to 'Available'
+    final List<String> statusOptions = ['Available', 'Pledged'];
+
     // Variable to store the selected image file
     File? imageFile;
+
+    // If gift has an image, decode the image and show it
+    String? encodedImage = gift?.image;
 
     // Function to pick an image from the gallery
     void _pickImage() async {
@@ -186,21 +197,23 @@ class _GiftListPageState extends State<GiftListPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Dropdown for status placed at the beginning of the row
+
                 TextField(controller: nameController, decoration: InputDecoration(labelText: 'Gift Name')),
                 TextField(controller: categoryController, decoration: InputDecoration(labelText: 'Category')),
-                TextField(controller: statusController, decoration: InputDecoration(labelText: 'Status')),
                 TextField(controller: descriptionController, decoration: InputDecoration(labelText: 'Description')),
                 TextField(controller: priceController, decoration: InputDecoration(labelText: 'Price')),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _pickImage,
-                  child: Text('Pick Image'),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.camera_alt),
+                    onPressed: _pickImage, // Pick image when clicked
+                  ),
                 ),
+                SizedBox(height: 10),
                 // Display the image (either base64 or selected image)
                 if (gift?.image != null && gift?.image!.isNotEmpty == true)
                   _getBase64Image(gift!.image!)!,
-                if (imageFile != null)
-                  Image.file(imageFile!, width: 100, height: 100),
+                if (imageFile != null) Image.file(imageFile!, width: 100, height: 100),
               ],
             ),
           ),
@@ -208,41 +221,61 @@ class _GiftListPageState extends State<GiftListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                final imagebytes = await File(imageFile!.path).readAsBytes();
-                String encodedim = base64Encode(imagebytes);
+                // Check if an image is selected and encode it
+                if (imageFile != null) {
+                  final imageBytes = await File(imageFile!.path).readAsBytes();
+                  encodedImage = base64Encode(imageBytes); // Use the newly selected image
+                }
 
                 if (gift == null) {
                   // Adding a new gift
                   widget.event.giftlist!.add(Gift(
                     name: nameController.text,
                     category: categoryController.text,
-                    status: statusController.text,
+                    status: status,
                     description: descriptionController.text,
                     price: int.tryParse(priceController.text) ?? 0,
-                    image: encodedim,
+                    image: encodedImage ?? '',
                     eventId: widget.event.id,
                   ));
 
-                  bool addgift = await Gift.addGift(Gift(
+                  bool addGift = await Gift.addGift(Gift(
                     name: nameController.text,
                     category: categoryController.text,
-                    status: statusController.text,
+                    status: status,
                     description: descriptionController.text,
                     price: int.tryParse(priceController.text) ?? 0,
-                    image: encodedim,
+                    image: encodedImage ?? '',
                     eventId: widget.event.id,
                   ));
+
+                  Event? ev = await Event.getEventById(widget.event.id!);
+                  widget.event = ev!;
+                  widget.User = await Friend.getUserObject(widget.User.id!);
+
+                  showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
                 } else {
                   // Editing an existing gift
                   gift.name = nameController.text;
                   gift.category = categoryController.text;
-                  gift.status = statusController.text;
+                  gift.status = status;
                   gift.description = descriptionController.text;
                   gift.price = int.tryParse(priceController.text) ?? gift.price;
-                  gift.image = encodedim;
+                  gift.image = encodedImage ?? gift.image;
+
+                  bool updateStatus = await Gift.updateGift(gift);
+                  Event? ev = await Event.getEventById(widget.event.id!);
+                  widget.event = ev!;
+                  widget.User = await Friend.getUserObject(widget.User.id!);
+
+                  showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
                 }
 
-                setState(() {});
+                // Refresh gift list after update
+                setState(() {
+                  widget.event.giftlist = widget.event.giftlist;
+                });
+
                 Navigator.of(context).pop();
               },
               child: Text('Save'),
@@ -253,6 +286,9 @@ class _GiftListPageState extends State<GiftListPage> {
     );
   }
 
+
+
+
   void _addGift() => _showGiftDialog();
 
   void _editGift(Gift gift) => _showGiftDialog(gift: gift);
@@ -262,4 +298,38 @@ class _GiftListPageState extends State<GiftListPage> {
       widget.event.giftlist!.remove(gift);
     });
   }
+
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,  // Customize the icon
+            color: Colors.white,
+          ),
+          SizedBox(width: 8), // Add some space between the icon and the text
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
 }

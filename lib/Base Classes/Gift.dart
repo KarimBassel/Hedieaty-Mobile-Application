@@ -32,7 +32,7 @@ class Gift {
       description: map['Description'],
       price: map['Price'],
       category: map["Category"],
-      status: map["Status"],
+      status: (map["Status"]==0)?"Available":"Pledged",
       eventId: map['EventID'],
       image: map['Image'],
     );
@@ -71,9 +71,10 @@ class Gift {
 
     try {
       // Prepare the SQL query to insert a new gift into the Gifts table
+      int status = (gift.status=="Available")?0:1;
       String query = """
       INSERT INTO Gifts (Name, Description, Category, Price, Image, Status, EventID)
-      VALUES ('${gift.name}', '${gift.description}', '${gift.category}', ${gift.price}, '${gift.image}', '${gift.status}', ${gift.eventId})
+      VALUES ('${gift.name}', '${gift.description}', '${gift.category}', ${gift.price}, '${gift.image}', ${status}, ${gift.eventId})
     """;
 
       // Execute the query using insertData (assuming insertData method exists in Databaseclass)
@@ -89,6 +90,32 @@ class Gift {
     } catch (e) {
       print("Error adding gift: $e");
       return false; // Return false if there was an error
+    }
+  }
+
+  static Future<bool> updateGift(Gift gift)async{
+    try{
+      final db = await Databaseclass();
+
+      String query = '''
+      UPDATE Gifts SET Name='${gift.name}',Description='${gift.description}',
+      Category='${gift.category}',Price=${gift.price},Image='${gift.image}'
+       WHERE EventID=${gift.eventId} and ID=${gift.id}
+      ''';
+
+      int result = await db.updateData(query);
+
+      if (result > 0) {
+        print("Gift updated successfully.");
+        return true;
+      } else {
+        print("No rows were updated.");
+        return false;
+      }
+
+    }catch(e){
+      print("Error updating gift: $e");
+      return false;
     }
   }
 

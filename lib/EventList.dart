@@ -7,27 +7,19 @@ class EventListPage extends StatefulWidget {
   final bool isOwner;
   Friend User;
   Friend? friend;
-  EventListPage({required this.isOwner,required this.User,this.friend});
+  EventListPage({required this.isOwner, required this.User, this.friend});
 
   @override
   _EventListPageState createState() => _EventListPageState();
 }
 
 class _EventListPageState extends State<EventListPage> {
-
-  // List<Event> events = [
-  //   Event(name: 'Conference', category: 'Business', status: 'Upcoming'),
-  //   Event(name: 'Birthday Party', category: 'Personal', status: 'Past'),
-  //   Event(name: 'Workshop', category: 'Education', status: 'Current'),
-  // ];
-
   String _sortCriterion = 'Name';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
         title: Text('Event List'),
         actions: [
           DropdownButton<String>(
@@ -48,64 +40,88 @@ class _EventListPageState extends State<EventListPage> {
         ],
       ),
       body: ListView.builder(
-        itemCount: (widget.isOwner==true)?widget.User.eventlist!.length:widget.friend!.eventlist!.length,
+        itemCount: (widget.isOwner == true)
+            ? widget.User.eventlist!.length
+            : widget.friend!.eventlist!.length,
         itemBuilder: (context, index) {
-          final event = (widget.isOwner==true)?widget.User.eventlist![index]:widget.friend!.eventlist![index];
+          final event = (widget.isOwner == true)
+              ? widget.User.eventlist![index]
+              : widget.friend!.eventlist![index];
           return ListTile(
-            title: Text(event.name,style: TextStyle(fontWeight: FontWeight.bold),),
+            title: Text(event.name, style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // padding for spacing
-                    decoration: BoxDecoration(
-                      color: Colors.orangeAccent, // background color
-                      borderRadius: BorderRadius.circular(12), // rounded edges
-                    ),
-                    child: Text('${event.category} - ${event.status}',style: TextStyle(color: Colors.white),)),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orangeAccent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text('${event.category} - ${event.status}',
+                      style: TextStyle(color: Colors.white)),
+                ),
               ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if(widget.isOwner)
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    _editEvent(event);
-                    setState(() {
-
-                    });
-                  }),
-                if(widget.isOwner)
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => _deleteEvent(event),
-                ),
+                if (widget.isOwner)
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () {
+                      _editEvent(event);
+                    },
+                  ),
+                if (widget.isOwner)
+                  IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      _deleteEvent(event);
+                    },
+                  ),
               ],
             ),
-            onTap: (){
-              if(widget.isOwner){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => GiftListPage(event: event,isOwner: widget.isOwner,User: widget.User,)));
+            onTap: () {
+              if (widget.isOwner) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => GiftListPage(
+                        event: event,
+                        isOwner: widget.isOwner,
+                        User: widget.User,
+                      )),
+                );
               }
+
               else{
-
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => GiftListPage(
+                        event: event,
+                        isOwner: widget.isOwner,
+                        User: widget.User,
+                        friend: widget.friend,
+                      )),
+                );
               }
-
             },
           );
         },
       ),
-      floatingActionButton: !widget.isOwner? null :
-      FloatingActionButton(
-        onPressed: (){
+      floatingActionButton: !widget.isOwner
+          ? null
+          : FloatingActionButton(
+        onPressed: () {
           _addEvent();
-          setState(() {
-
-          });
         },
         backgroundColor: Colors.orangeAccent,
-        child: Icon(Icons.add,color: Colors.white,),
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -125,21 +141,20 @@ class _EventListPageState extends State<EventListPage> {
       });
     });
   }
-  void _showEventDialog({Event? event}) {
-    // Controllers for the existing and new attributes
+
+  void _showEventDialog({Event? event}) async {
     final nameController = TextEditingController(text: event?.name);
     final categoryController = TextEditingController(text: event?.category);
     final locationController = TextEditingController(text: event?.location);
     final descriptionController = TextEditingController(text: event?.description);
 
-    // A variable to hold the selected date
     DateTime? selectedDate = event?.date;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder: (context, setState) { // Use StatefulBuilder to manage dialog state
+          builder: (context, setState) {
             return AlertDialog(
               title: Text(event == null ? 'Add Event' : 'Edit Event'),
               content: SingleChildScrollView(
@@ -157,15 +172,12 @@ class _EventListPageState extends State<EventListPage> {
                     SizedBox(height: 16),
                     GestureDetector(
                       onTap: () async {
-                        // Show the date picker
                         DateTime? pickedDate = await showDatePicker(
                           context: context,
                           initialDate: selectedDate ?? DateTime.now(),
-                          firstDate: DateTime(2000), // Minimum date
-                          lastDate: DateTime(2100), // Maximum date
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
                         );
-
-                        // Update the selected date and refresh dialog UI
                         if (pickedDate != null) {
                           setState(() {
                             selectedDate = pickedDate;
@@ -243,7 +255,6 @@ class _EventListPageState extends State<EventListPage> {
                       return;
                     }
 
-                    // Automatically calculate the status
                     final DateTime today = DateTime.now();
                     final String status = selectedDate!.isBefore(today)
                         ? 'Completed'
@@ -261,7 +272,6 @@ class _EventListPageState extends State<EventListPage> {
                         userId: widget.User.id,
                       ));
 
-
                       await Event.insertEvent(Event(
                         name: name,
                         category: category,
@@ -272,8 +282,7 @@ class _EventListPageState extends State<EventListPage> {
                         userId: widget.User.id,
                       ));
 
-                      showCustomSnackBar(context,"Event Added Successfully",backgroundColor: Colors.green);
-
+                      showCustomSnackBar(context, "Event Added Successfully", backgroundColor: Colors.green);
                     } else {
                       // Update existing event
                       event.name = name;
@@ -282,18 +291,19 @@ class _EventListPageState extends State<EventListPage> {
                       event.date = selectedDate;
                       event.location = location;
                       event.description = description;
+
                       bool? updateStatus = await Event.updateEvent(event);
-                      print(updateStatus);
 
-                      showCustomSnackBar(context,"Event Updated Successfully",backgroundColor: Colors.green);
-
+                      showCustomSnackBar(context, "Event Updated Successfully", backgroundColor: Colors.green);
                     }
-                    // List<Event> eventlist = await Friend.getEvents(widget.User.id);
-                    // widget.User.eventlist = eventlist;
-                    widget.User = await Friend.getUserObject(widget.User.id!);
-                    setState(() {
 
+                    // Reload user data and refresh event list
+                    widget.User = await Friend.getUserObject(widget.User.id!);
+                    widget.User.eventlist = await Friend.getEvents(widget.User.id!);
+                    setState(() {
+                      widget.User.eventlist = widget.User.eventlist;
                     });
+
                     Navigator.of(context).pop();
                   },
                   child: Text('Save'),
@@ -306,41 +316,33 @@ class _EventListPageState extends State<EventListPage> {
     );
   }
 
-
-
-
-
-
   void _addEvent() {
     _showEventDialog();
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   void _editEvent(Event event) {
     _showEventDialog(event: event);
-    setState(() {
-
-    });
+    setState(() {});
   }
-  void _deleteEvent(Event event) async{
+
+  void _deleteEvent(Event event) async {
     bool? deletestatus = await Event.deleteEvent(event.id!);
-    print(deletestatus);
-    showCustomSnackBar(context,"Event Deleted Successfully",backgroundColor: Colors.green);
+    showCustomSnackBar(context, "Event Deleted Successfully", backgroundColor: Colors.green);
     setState(() {
       widget.User.eventlist!.remove(event);
     });
   }
+
   void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
     final snackBar = SnackBar(
       content: Row(
         children: [
           Icon(
-            Icons.error_outline,  // Customize the icon
+            Icons.error_outline,
             color: Colors.white,
           ),
-          SizedBox(width: 8), // Add some space between the icon and the text
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
@@ -348,21 +350,20 @@ class _EventListPageState extends State<EventListPage> {
                 color: Colors.white,
                 fontSize: 16,
               ),
-              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,  // Set the background color
-      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
-      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
-      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
-      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+      backgroundColor: backgroundColor,
+      duration: Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-
 }
