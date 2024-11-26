@@ -17,6 +17,7 @@ class Friend {
   int? notifications;
   List<Friend>? friendlist;
   List<Event>? eventlist;
+  List<Gift>? PledgedGifts;
 
   Friend({
     this.id,
@@ -269,9 +270,49 @@ class Friend {
     user.friendlist = friendlist;
     List<Event> eventlist = await Friend.getEvents(UserID);
     user.eventlist = eventlist;
+    List<Gift> pledgedgifts = await Friend.getPledgedGiftsWithEventDetails(UserID);
+    user.PledgedGifts = pledgedgifts;
     return user;
 
   }
+  static Future<List<Gift>> getPledgedGiftsWithEventDetails(int pledgerId) async {
+    try {
+      // Step 1: Get the database instance
+      final db = await Databaseclass();
+
+      // Step 2: Query to fetch pledged gifts with event details and owner name
+      String query = '''
+      SELECT 
+        Gifts.*, 
+        Events.Date AS EventDate, 
+        Users.Name AS EventOwnerName
+      FROM Gifts
+      JOIN Events ON Gifts.EventID = Events.ID
+      JOIN Users ON Events.UserID = Users.ID
+      WHERE Gifts.PledgerID = $pledgerId
+    ''';
+
+      // Step 3: Execute the query
+      List<Map<String, dynamic>> result = await db.readData(query);
+
+      // Step 4: Create a list to hold Gift objects
+      List<Gift> giftsList = [];
+
+      // Step 5: Process each record and map it to a Gift object
+      for (var giftData in result) {
+        Gift gift = Gift.fromMap(giftData);
+        gift.DueDate = DateTime.parse(giftData['EventDate']);
+        gift.Ownername = giftData['EventOwnerName'];
+        giftsList.add(gift);
+      }
+
+      return giftsList;
+    } catch (e) {
+      print("Error fetching pledged gifts with event details: $e");
+      return [];
+    }
+  }
+
 
   static Future<bool> getUserByPhoneNumber(String phoneNumber) async {
     final db = await Databaseclass();

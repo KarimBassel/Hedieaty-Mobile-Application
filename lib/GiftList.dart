@@ -35,6 +35,12 @@ class _GiftListPageState extends State<GiftListPage> {
         child: Column(
           children: [
             Text('Event: ${widget.event.name}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Category: ${widget.event.category}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Date: ${widget.event.date
+                ?.toIso8601String().split('T')[0]}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            //Text('Description: ${widget.event.description}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Status: ${widget.event.status}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text('Location: ${widget.event.location}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             SizedBox(height: 16.0),
             Divider(),
             DropdownButton<String>(
@@ -61,7 +67,7 @@ class _GiftListPageState extends State<GiftListPage> {
                   final gift = widget.event.giftlist![index];
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    color: gift.status == 'Pledged' ? Colors.amber[100] : Colors.white,
+                    color: gift.status == 'Pledged' ? Colors.red[100] : Colors.white,
                     child: ListTile(
                       leading: gift.image != null
                           ? Image.memory(base64Decode(gift.image!.split(',').last))
@@ -105,11 +111,28 @@ class _GiftListPageState extends State<GiftListPage> {
                             ),
                         ],
                       ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false)),
-                        );
+                      onTap: () async{
+                        if(widget.isOwner){
+                          print("okash");
+                          List<Gift> updatedlist = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
+                              isPledger: false,friend: widget.User,))
+                          );
+                          widget.event.giftlist=updatedlist;
+                        }
+                        else{
+                          print(widget.User!.PhoneNumber);
+                          print(gift.PledgerID);
+                          print(widget.User.id);
+                          List<Gift> updatedlist = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
+                                isPledger: (gift.PledgerID==widget.User.id)?true:false,friend: widget.User,))
+                          );
+                          widget.event.giftlist=updatedlist;
+                        }
+
                       },
                     ),
                   );

@@ -11,6 +11,9 @@ class Gift {
   String description;
   int price;
   String? image;
+  int? PledgerID;
+  String? Ownername;
+  DateTime? DueDate;
 
   Gift({
     required this.name,
@@ -20,7 +23,8 @@ class Gift {
     required this.price,
     this.image,
     this.eventId,
-    this.id
+    this.id,
+    this.PledgerID
   });
 
   factory Gift.fromMap(Map<String, dynamic> map) {
@@ -35,6 +39,7 @@ class Gift {
       status: (map["Status"]==0)?"Available":"Pledged",
       eventId: map['EventID'],
       image: map['Image'],
+      PledgerID: map['PledgerID']
     );
   }
 
@@ -52,7 +57,7 @@ class Gift {
   }
  static Future<List<Gift>> getGiftList(int eventId) async {
     final db = await Databaseclass();
-    String query = "SELECT * FROM Gifts WHERE EventID=${eventId}";
+    String query = "SELECT * FROM Gifts WHERE EventID=${eventId} LIMIT 1 OFFSET 0";
     List<Map<String, dynamic>> result = await db.readData(query);
 
     List<Gift> giftlist = [];
@@ -96,10 +101,11 @@ class Gift {
   static Future<bool> updateGift(Gift gift)async{
     try{
       final db = await Databaseclass();
+      int status = (gift.status=="Available")?0:1;
 
       String query = '''
       UPDATE Gifts SET Name='${gift.name}',Description='${gift.description}',
-      Category='${gift.category}',Price=${gift.price},Image='${gift.image}'
+      Category='${gift.category}',Price=${gift.price},Image='${gift.image}', PledgerID=${gift.PledgerID},Status=${status}
        WHERE EventID=${gift.eventId} and ID=${gift.id}
       ''';
 

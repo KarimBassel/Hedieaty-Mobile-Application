@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Gift.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -188,8 +189,9 @@ class _ProfileState extends State<Profile> {
           SizedBox(height: 20),
 
 
-          _buildNavigationButton("My Pledged Gifts", () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts()));
+          _buildNavigationButton("My Pledged Gifts", () async{
+            List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(widget.User.id!);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
           }),
         ],
       ),

@@ -238,16 +238,19 @@ class _HomeState extends State<Home> {
             print(widget.User.id!);
             final phone = PhoneController.text;
             if(widget.User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
-            dynamic newfriend = await Friend.registerFriend(widget.User.id!, phone);
-            //returned false from search query of the phone number
-            if(newfriend is bool){
-              showCustomSnackBar(context,"User Not Found");
-            }
             else{
-              Friend updatedUser = await Friend.getUserObject(widget.User.id!);
-              widget.User=updatedUser!;
-              filteredfriends = widget.User.friendlist;
+              dynamic newfriend = await Friend.registerFriend(widget.User.id!, phone);
+              //returned false from search query of the phone number
+              if(newfriend is bool){
+                showCustomSnackBar(context,"User Not Found");
+              }
+              else{
+                Friend updatedUser = await Friend.getUserObject(widget.User.id!);
+                widget.User=updatedUser!;
+                filteredfriends = widget.User.friendlist;
+              }
             }
+
             setState(() {
 
             });

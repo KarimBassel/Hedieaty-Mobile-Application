@@ -5,15 +5,18 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftList.dart';
 import 'Base Classes/Gift.dart';
+import 'Base Classes/Friend.dart';
 
 bool flag = false;
 
 class GiftDetails extends StatefulWidget {
   bool isOwner;
   bool isPledged;
+  bool isPledger;
+  Friend? friend;
   final Gift gift;
 
-  GiftDetails({super.key, this.isOwner = false, this.isPledged = true, required this.gift});
+  GiftDetails({super.key,required this.isOwner,required this.isPledged, required this.gift,required this.isPledger,this.friend});
 
   @override
   _GiftDetailsState createState() => _GiftDetailsState();
@@ -48,24 +51,33 @@ class _GiftDetailsState extends State<GiftDetails> {
     }
   }
 
-  void _togglePledge() {
-    setState(() {
-      if (widget.gift.status == "Available") {
-        widget.gift.status = "Pledged";
-        _statusController.text = "Pledged";
-        widget.isPledged = true;
-      } else {
-        widget.gift.status = "Available";
-        _statusController.text = "Available";
-        widget.isPledged = false;
-      }
-    });
+  void _togglePledge() async{
+    if (widget.gift.status == "Available") {
+      widget.gift.status = "Pledged";
+      _statusController.text = "Pledged";
+      widget.isPledged = true;
+      widget.isPledger=true;
+      widget.gift.PledgerID = widget.friend!.id;
+      bool updatestatus = await Gift.updateGift(widget.gift);
+
+    } else {
+      widget.gift.status = "Available";
+      _statusController.text = "Available";
+      widget.isPledged = false;
+      widget.isPledger=false;
+      widget.gift.PledgerID = -1;
+      bool updatestatus = await Gift.updateGift(widget.gift);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(onPressed: ()async{
+          List<Gift> updatedlist = await Gift.getGiftList(widget.gift.eventId!);
+          Navigator.pop(context,updatedlist);
+        }, icon: Icon(Icons.arrow_back)),
         title: Center(
           child: Text(
             "Gift Details",
@@ -104,7 +116,7 @@ class _GiftDetailsState extends State<GiftDetails> {
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
-                color: widget.isPledged ? Colors.amber[900] : Colors.amber[300],
+                color: widget.isPledged ? Colors.red : Colors.green,
               ),
             ),
           ),
@@ -122,19 +134,24 @@ class _GiftDetailsState extends State<GiftDetails> {
           _buildEditableField("Price", _priceController),
           SizedBox(height: 10),
 
-          if (!widget.isOwner)
+          if ((!widget.isOwner && widget.isPledger) || (!widget.isOwner && !widget.isPledged))
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _togglePledge,
+                    onPressed: (){
+                      _togglePledge();
+                      setState(() {
+
+                      });
+                    },
                     child: Text(
                       widget.gift.status == "Available" ? "Pledge" : "Cancel",
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
                       textStyle: const TextStyle(fontSize: 20),
-                      backgroundColor: widget.gift.status == "Available" ? Colors.amber[300] : Colors.amber[900],
+                      backgroundColor: widget.gift.status == "Available" ? Colors.green : Colors.red,
                     ),
                   ),
                 ),

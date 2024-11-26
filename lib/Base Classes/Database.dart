@@ -61,8 +61,11 @@ CREATE TABLE Gifts (
   Image TEXT,
   Status INTEGER DEFAULT 0,
   EventID INTEGER NOT NULL,
-  FOREIGN KEY (EventID) REFERENCES Events(ID)
+  PledgerID INTEGER DEFAULT -1,
+  FOREIGN KEY (EventID) REFERENCES Events(ID),
+  FOREIGN KEY (PledgerID) REFERENCES Users(ID)
 );
+
 ''');
 
 db.execute('''
@@ -80,8 +83,8 @@ CREATE TABLE Friends (
       db.execute('''INSERT INTO Events (Name, Date, Location, Description, Category, Status, UserID) VALUES
   ('Birthday Party', '2024-12-15', 'Johns House', 'A fun celebration with friends and family', 'Birthday','Upcoming', 1),
   ('Wedding Anniversary', '2024-11-30', 'Janes House', 'Celebrating our special day', 'Anniversary', 'Upcoming',1),
-  ('Tech Conference', '2024-10-25', 'Convention Center', 'A conference on the latest tech trends', 'Completed', 'Upcoming',1),
-  ('Art Exhibition', '2024-09-20', 'Art Gallery', 'An exhibition showcasing local artists', 'Completed', 'Upcoming',1);
+  ('Tech Conference', '2024-10-25', 'Convention Center', 'A conference on the latest tech trends', 'Completed', 'Completed',1),
+  ('Art Exhibition', '2024-09-20', 'Art Gallery', 'An exhibition showcasing local artists', 'Completed', 'Completed',1);
 ''');
 
 

@@ -58,7 +58,8 @@ class _EventListPageState extends State<EventListPage> {
                     color: Colors.orangeAccent,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text('${event.category} - ${event.status}',
+                  child: Text('${event.status} - ${event.date
+                      ?.toIso8601String().split('T')[0]}',
                       style: TextStyle(color: Colors.white)),
                 ),
               ],
@@ -262,15 +263,7 @@ class _EventListPageState extends State<EventListPage> {
 
                     if (event == null) {
                       // Add new event
-                      widget.User.eventlist!.add(Event(
-                        name: name,
-                        category: category,
-                        status: status,
-                        date: selectedDate,
-                        location: location,
-                        description: description,
-                        userId: widget.User.id,
-                      ));
+
 
                       await Event.insertEvent(Event(
                         name: name,
@@ -281,17 +274,29 @@ class _EventListPageState extends State<EventListPage> {
                         description: description,
                         userId: widget.User.id,
                       ));
-
                       showCustomSnackBar(context, "Event Added Successfully", backgroundColor: Colors.green);
+
+                      setState(() {
+                        widget.User.eventlist!.add(Event(
+                          name: name,
+                          category: category,
+                          status: status,
+                          date: selectedDate,
+                          location: location,
+                          description: description,
+                          userId: widget.User.id,
+                        ));
+                      });
                     } else {
                       // Update existing event
-                      event.name = name;
-                      event.category = category;
-                      event.status = status;
-                      event.date = selectedDate;
-                      event.location = location;
-                      event.description = description;
-
+                      setState((){
+                        event.name = name;
+                        event.category = category;
+                        event.status = status;
+                        event.date = selectedDate;
+                        event.location = location;
+                        event.description = description;
+                      });
                       bool? updateStatus = await Event.updateEvent(event);
 
                       showCustomSnackBar(context, "Event Updated Successfully", backgroundColor: Colors.green);
