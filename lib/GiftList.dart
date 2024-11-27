@@ -91,23 +91,23 @@ class _GiftListPageState extends State<GiftListPage> {
                         children: [
                           if (widget.isOwner && gift.status == "Available")
                             IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                _editGift(gift);
-                                setState(() {
+                                icon: Icon(Icons.edit),
+                                onPressed: () {
+                                  _editGift(gift);
+                                  setState(() {
 
-                                });
-                              }
+                                  });
+                                }
                             ),
                           if (widget.isOwner && gift.status == "Available")
                             IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                _deleteGift(gift);
-                                setState(() {
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  _deleteGift(gift);
+                                  setState(() {
 
-                                });
-                  }
+                                  });
+                                }
                             ),
                         ],
                       ),
@@ -115,11 +115,13 @@ class _GiftListPageState extends State<GiftListPage> {
                         if(widget.isOwner){
                           print("okash");
                           List<Gift> updatedlist = await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                              isPledger: false,friend: widget.User,))
+                              context,
+                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
+                                isPledger: false,friend: widget.User,))
                           );
-                          widget.event.giftlist=updatedlist;
+                          setState(() {
+                            widget.event.giftlist=updatedlist;
+                          });
                         }
                         else{
                           print(widget.User!.PhoneNumber);
@@ -130,7 +132,10 @@ class _GiftListPageState extends State<GiftListPage> {
                               MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
                                 isPledger: (gift.PledgerID==widget.User.id)?true:false,friend: widget.User,))
                           );
-                          widget.event.giftlist=updatedlist;
+
+                          setState(() {
+                            widget.event.giftlist=updatedlist;
+                          });
                         }
 
                       },
@@ -272,9 +277,6 @@ class _GiftListPageState extends State<GiftListPage> {
                     eventId: widget.event.id,
                   ));
 
-                  Event? ev = await Event.getEventById(widget.event.id!);
-                  widget.event = ev!;
-                  widget.User = await Friend.getUserObject(widget.User.id!);
 
                   showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
                 } else {
@@ -287,16 +289,14 @@ class _GiftListPageState extends State<GiftListPage> {
                   gift.image = encodedImage ?? gift.image;
 
                   bool updateStatus = await Gift.updateGift(gift);
-                  Event? ev = await Event.getEventById(widget.event.id!);
-                  widget.event = ev!;
-                  widget.User = await Friend.getUserObject(widget.User.id!);
+
 
                   showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
                 }
-
+                widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
                 // Refresh gift list after update
                 setState(() {
-                  widget.event.giftlist = widget.event.giftlist;
+
                 });
 
                 Navigator.of(context).pop();
@@ -316,9 +316,11 @@ class _GiftListPageState extends State<GiftListPage> {
 
   void _editGift(Gift gift) => _showGiftDialog(gift: gift);
 
-  void _deleteGift(Gift gift) {
+  void _deleteGift(Gift gift) async{
+    bool delgift = await Gift.DeleteGift(gift.id!);
+    widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
     setState(() {
-      widget.event.giftlist!.remove(gift);
+
     });
   }
 

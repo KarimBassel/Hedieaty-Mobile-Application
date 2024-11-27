@@ -15,6 +15,43 @@ class EventListPage extends StatefulWidget {
 
 class _EventListPageState extends State<EventListPage> {
   String _sortCriterion = 'Name';
+  List<Event> events=[];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+  }
+
+  // Load the events initially
+  void _loadEvents() async {
+    List<Event> loadedEvents = await getEvents();
+    setState(() {
+      events = loadedEvents;
+    });
+  }
+
+  Future<List<Event>> getEvents() async {
+    if (widget.isOwner) {
+      return await Friend.getEvents(widget.User.id!);
+    } else {
+      return await Friend.getEvents(widget.friend!.id);
+    }
+  }
+
+  void _sortEvents() {
+    events.sort((a, b) {
+      switch (_sortCriterion) {
+        case 'Category':
+          return a.category.compareTo(b.category);
+        case 'Status':
+          return a.status.compareTo(b.status);
+        case 'Name':
+        default:
+          return a.name.compareTo(b.name);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +76,12 @@ class _EventListPageState extends State<EventListPage> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: (widget.isOwner == true)
-            ? widget.User.eventlist!.length
-            : widget.friend!.eventlist!.length,
+      body: events.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+        itemCount: events.length,
         itemBuilder: (context, index) {
-          final event = (widget.isOwner == true)
-              ? widget.User.eventlist![index]
-              : widget.friend!.eventlist![index];
+          final event = events[index];
           return ListTile(
             title: Text(event.name, style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Row(
@@ -58,9 +93,10 @@ class _EventListPageState extends State<EventListPage> {
                     color: Colors.orangeAccent,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text('${event.status} - ${event.date
-                      ?.toIso8601String().split('T')[0]}',
-                      style: TextStyle(color: Colors.white)),
+                  child: Text(
+                    '${event.status} - ${event.date?.toIso8601String().split('T')[0]}',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -84,30 +120,17 @@ class _EventListPageState extends State<EventListPage> {
               ],
             ),
             onTap: () {
-              if (widget.isOwner) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => GiftListPage(
-                        event: event,
-                        isOwner: widget.isOwner,
-                        User: widget.User,
-                      )),
-                );
-              }
-
-              else{
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => GiftListPage(
-                        event: event,
-                        isOwner: widget.isOwner,
-                        User: widget.User,
-                        friend: widget.friend,
-                      )),
-                );
-              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GiftListPage(
+                    event: event,
+                    isOwner: widget.isOwner,
+                    User: widget.User,
+                    friend: widget.friend,
+                  ),
+                ),
+              );
             },
           );
         },
@@ -127,23 +150,7 @@ class _EventListPageState extends State<EventListPage> {
     );
   }
 
-  void _sortEvents() {
-    setState(() {
-      widget.User.eventlist!.sort((a, b) {
-        switch (_sortCriterion) {
-          case 'Category':
-            return a.category.compareTo(b.category);
-          case 'Status':
-            return a.status.compareTo(b.status);
-          case 'Name':
-          default:
-            return a.name.compareTo(b.name);
-        }
-      });
-    });
-  }
-
-  void _showEventDialog({Event? event}) async {
+  void _showEventDialog({Event? event}) {
     final nameController = TextEditingController(text: event?.name);
     final categoryController = TextEditingController(text: event?.category);
     final locationController = TextEditingController(text: event?.location);
@@ -263,8 +270,6 @@ class _EventListPageState extends State<EventListPage> {
 
                     if (event == null) {
                       // Add new event
-
-
                       await Event.insertEvent(Event(
                         name: name,
                         category: category,
@@ -275,41 +280,19 @@ class _EventListPageState extends State<EventListPage> {
                         userId: widget.User.id,
                       ));
                       showCustomSnackBar(context, "Event Added Successfully", backgroundColor: Colors.green);
-
-                      setState(() {
-                        widget.User.eventlist!.add(Event(
-                          name: name,
-                          category: category,
-                          status: status,
-                          date: selectedDate,
-                          location: location,
-                          description: description,
-                          userId: widget.User.id,
-                        ));
-                      });
                     } else {
                       // Update existing event
-                      setState((){
-                        event.name = name;
-                        event.category = category;
-                        event.status = status;
-                        event.date = selectedDate;
-                        event.location = location;
-                        event.description = description;
-                      });
+                      event.name = name;
+                      event.category = category;
+                      event.status = status;
+                      event.date = selectedDate;
+                      event.location = location;
+                      event.description = description;
                       bool? updateStatus = await Event.updateEvent(event);
-
                       showCustomSnackBar(context, "Event Updated Successfully", backgroundColor: Colors.green);
                     }
-
-                    // Reload user data and refresh event list
-                    widget.User = await Friend.getUserObject(widget.User.id!);
-                    widget.User.eventlist = await Friend.getEvents(widget.User.id!);
-                    setState(() {
-                      widget.User.eventlist = widget.User.eventlist;
-                    });
-
                     Navigator.of(context).pop();
+                    _loadEvents();
                   },
                   child: Text('Save'),
                 ),
@@ -323,31 +306,32 @@ class _EventListPageState extends State<EventListPage> {
 
   void _addEvent() {
     _showEventDialog();
-    setState(() {});
   }
 
   void _editEvent(Event event) {
     _showEventDialog(event: event);
-    setState(() {});
   }
 
-  void _deleteEvent(Event event) async {
-    bool? deletestatus = await Event.deleteEvent(event.id!);
-    showCustomSnackBar(context, "Event Deleted Successfully", backgroundColor: Colors.green);
-    setState(() {
-      widget.User.eventlist!.remove(event);
-    });
+  Future<void> _deleteEvent(Event event) async {
+    bool? success = await Event.deleteEvent(event.id!);
+    if (success ?? false) {
+      showCustomSnackBar(context, "Event Deleted Successfully", backgroundColor: Colors.red);
+      setState(() {
+        events.remove(event);
+      });
+    } else {
+      showCustomSnackBar(context, "Error Deleting Event", backgroundColor: Colors.red);
+    }
   }
-
   void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
     final snackBar = SnackBar(
       content: Row(
         children: [
           Icon(
-            Icons.error_outline,
+            Icons.error_outline,  // Customize the icon
             color: Colors.white,
           ),
-          SizedBox(width: 8),
+          SizedBox(width: 8), // Add some space between the icon and the text
           Expanded(
             child: Text(
               message,
@@ -355,16 +339,16 @@ class _EventListPageState extends State<EventListPage> {
                 color: Colors.white,
                 fontSize: 16,
               ),
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,
-      duration: Duration(seconds: 3),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(
+      backgroundColor: backgroundColor,  // Set the background color
+      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
+      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
+      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
+      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
     );

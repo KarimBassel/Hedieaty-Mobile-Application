@@ -57,7 +57,7 @@ class Gift {
   }
  static Future<List<Gift>> getGiftList(int eventId) async {
     final db = await Databaseclass();
-    String query = "SELECT * FROM Gifts WHERE EventID=${eventId} LIMIT 1 OFFSET 0";
+    String query = "SELECT * FROM Gifts WHERE EventID=${eventId}";
     List<Map<String, dynamic>> result = await db.readData(query);
 
     List<Gift> giftlist = [];
@@ -123,6 +123,30 @@ class Gift {
       print("Error updating gift: $e");
       return false;
     }
+  }
+  static Future<bool> DeleteGift(int giftid)async{
+    try {
+      final db = await Databaseclass();
+
+      String query = '''
+      DELETE FROM GIFTS WHERE ID=${giftid}
+      ''';
+
+      int result = await db.deleteData(query);
+      if (result > 0) {
+        print("Gift Deleted successfully!");
+        return true; // Return true if insertion was successful
+      } else {
+        print("Failed to Delete gift.");
+        return false;
+      }
+    }catch(e){
+      print("Error deleting gift: $e");
+      return false;
+    }
+
+
+
   }
 
 
