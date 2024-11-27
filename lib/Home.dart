@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/Profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'FriendCard.dart';
 import 'Base Classes/Friend.dart';
 import 'Base Classes/Event.dart';
@@ -25,6 +27,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Databaseclass? db;
   List<Friend>? filteredfriends;
+  final FlutterNativeContactPicker _contactPicker =
+  FlutterNativeContactPicker();
+  List<Contact>? _contacts;
   // final List<Friend> friends = [
   //   Friend(
   //     image:
@@ -198,7 +203,31 @@ class _HomeState extends State<Home> {
             value: 'contacts',
             child: Text('Add Friend from Contacts'),
             onTap: () async {
-              print("contacts");
+
+              Contact? contact = await _contactPicker.selectContact();
+              String ExtractedNumber = contact!.phoneNumbers
+                  .toString()
+                  .replaceAll(RegExp(r'[\[\]]'), '')
+                  .replaceFirst('+2', '');
+              //print(ExtractedNumber);
+              if(widget.User.PhoneNumber==ExtractedNumber)showCustomSnackBar(context,"Cannot Add Yourself");
+              else {
+                dynamic newfriend = await Friend.registerFriend(
+                    widget.User.id!, ExtractedNumber);
+                //returned false from search query of the phone number
+                if (newfriend is bool) {
+                  showCustomSnackBar(context, "User Not Found");
+                }
+                else {
+                  Friend updatedUser = await Friend.getUserObject(
+                      widget.User.id!);
+                  widget.User = updatedUser!;
+                  filteredfriends = widget.User.friendlist;
+                }
+              }
+              setState(() {
+
+              });
             },
           ),
         ],

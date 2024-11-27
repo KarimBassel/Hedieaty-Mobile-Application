@@ -41,14 +41,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.18.0"
-  contactor_picker:
-    dependency: "direct main"
-    description:
-      name: contactor_picker
-      sha256: "34283c58c041fb7f7002be9debd436f4eb0f79dbf736a9f2e9a5e1f315e3cfbe"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.7"
   cross_file:
     dependency: transitive
     description:
@@ -118,6 +110,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  flutter_native_contact_picker:
+    dependency: "direct main"
+    description:
+      name: flutter_native_contact_picker
+      sha256: dda7a652b80b457db7138f9219d5a525bede607177786cf16cc9b5f055b3b5f9
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.9"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -248,14 +248,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
-  lpinyin:
-    dependency: transitive
-    description:
-      name: lpinyin
-      sha256: "0bb843363f1f65170efd09fbdfc760c7ec34fc6354f9fcb2f89e74866a0d814a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.3"
   matcher:
     dependency: transitive
     description:

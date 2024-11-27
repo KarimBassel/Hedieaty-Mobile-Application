@@ -77,7 +77,7 @@ class _EventListPageState extends State<EventListPage> {
         ],
       ),
       body: events.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? null
           : ListView.builder(
         itemCount: events.length,
         itemBuilder: (context, index) {
