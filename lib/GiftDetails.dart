@@ -6,17 +6,17 @@ import 'dart:io';
 import 'GiftList.dart';
 import 'Base Classes/Gift.dart';
 import 'Base Classes/Friend.dart';
-
+import 'Base Classes/Event.dart';
 bool flag = false;
 
 class GiftDetails extends StatefulWidget {
   bool isOwner;
   bool isPledged;
-  bool isPledger;
-  Friend? friend;
+  bool isPledger;//this boolean tells if this gift is pledged by User or not to grant him the cancel pledge option
+  Friend? User;
   final Gift gift;
 
-  GiftDetails({super.key,required this.isOwner,required this.isPledged, required this.gift,required this.isPledger,this.friend});
+  GiftDetails({super.key,required this.isOwner,required this.isPledged, required this.gift,required this.isPledger,this.User});
 
   @override
   _GiftDetailsState createState() => _GiftDetailsState();
@@ -45,8 +45,12 @@ class _GiftDetailsState extends State<GiftDetails> {
     final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
+      final imageBytes = await File(pickedImage.path).readAsBytes();
+      String encodedImage = base64Encode(imageBytes);
+      widget.gift.image=encodedImage;
+      bool updatestatus = await Gift.updateGift(widget.gift);
       setState(() {
-        _image = File(pickedImage.path);
+
       });
     }
   }
@@ -57,7 +61,7 @@ class _GiftDetailsState extends State<GiftDetails> {
       _statusController.text = "Pledged";
       widget.isPledged = true;
       widget.isPledger=true;
-      widget.gift.PledgerID = widget.friend!.id;
+      widget.gift.PledgerID = widget.User!.id;
       bool updatestatus = await Gift.updateGift(widget.gift);
 
     } else {
@@ -77,6 +81,8 @@ class _GiftDetailsState extends State<GiftDetails> {
         leading: IconButton(onPressed: ()async{
           List<Gift> updatedlist = await Gift.getGiftList(widget.gift.eventId!);
           Navigator.pop(context,updatedlist);
+          // Event? e = await Event.getEventById(widget.gift.eventId!);
+          // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> GiftListPage(event: e!, isOwner: widget.isOwner, User: widget.User!)));
         }, icon: Icon(Icons.arrow_back)),
         title: Center(
           child: Text(
@@ -103,12 +109,12 @@ class _GiftDetailsState extends State<GiftDetails> {
               ),
             ),
           ),
-          if (widget.isOwner && !widget.isPledged)
-            IconButton(
-              icon: Icon(Icons.camera_alt),
-              onPressed: _pickImage,
-              iconSize: 30,
-            ),
+          // if (widget.isOwner && !widget.isPledged)
+          //   IconButton(
+          //     icon: Icon(Icons.camera_alt),
+          //     onPressed: _pickImage,
+          //     iconSize: 30,
+          //   ),
           SizedBox(height: 10),
           Center(
             child: Text(
@@ -139,8 +145,17 @@ class _GiftDetailsState extends State<GiftDetails> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: (){
+                    onPressed: ()async{
                       _togglePledge();
+                      Event? e = await Event.getEventById(widget.gift.eventId!);
+                      Navigator.of(context)
+                        ..pop()
+                        ..pop();
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => GiftListPage(event: e!, isOwner: widget.isOwner, User: widget.User!)),
+                      );
                       setState(() {
 
                       });

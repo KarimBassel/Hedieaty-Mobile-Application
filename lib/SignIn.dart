@@ -89,6 +89,12 @@ class _SignInState extends State<SignIn>{
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: 100, // Adjust the size of the avatar
+                    backgroundImage: AssetImage('Assets/logo.webp'), // Logo as background
+                  ),
+                ),
                 SizedBox(height: 16),
                 // Phone Number Field
                 TextFormField(
@@ -125,12 +131,32 @@ class _SignInState extends State<SignIn>{
                     return null;
                   },
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 20),
                 // Submit Button
-                ElevatedButton(
-                  onPressed: _submitForm,
-                  child: Text('Sign In'),
-                ),
+                // ElevatedButton(
+                //   onPressed: _submitForm,
+                //   child: Text('Sign In'),
+                // ),
+          ElevatedButton(
+            onPressed: _submitForm,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange[300],
+              padding: EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 5,
+            ),
+            child: Text(
+              "SignIn",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+
                 SizedBox(height: 16),
                 // Link to SignUp page
                 TextButton(

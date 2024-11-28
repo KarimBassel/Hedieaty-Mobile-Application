@@ -127,7 +127,6 @@ class _EventListPageState extends State<EventListPage> {
                     event: event,
                     isOwner: widget.isOwner,
                     User: widget.User,
-                    friend: widget.friend,
                   ),
                 ),
               );

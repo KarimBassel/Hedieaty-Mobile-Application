@@ -99,157 +99,173 @@ class _SignUpState extends State<Signup> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 16),
-                // Image Picker Section
-
-                SizedBox(height: 16),
-                // Name Field
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Name is required';
-                    }
-                    return null;
-                  },
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              Center(
+                child: CircleAvatar(
+                  radius: 100, // Adjust the size of the avatar
+                  backgroundImage: AssetImage('Assets/logo.webp'), // Logo as background
                 ),
-                SizedBox(height: 16),
-                // Email Field
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Email is required';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Enter a valid email';
-                    }
-                    return null;
-                  },
+              ),
+              SizedBox(height: 16),
+              // Name Field
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
                 ),
-                SizedBox(height: 16),
-                // Preferences Field
-                TextFormField(
-                  controller: _preferencesController,
-                  decoration: InputDecoration(
-                    labelText: 'Preferences',
-                    border: OutlineInputBorder(),
-                  ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Name is required';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              // Email Field
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
                 ),
-                SizedBox(height: 16),
-                // Phone Number Field
-                TextFormField(
-                  controller: _phoneNumberController,
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Phone Number is required';
-                    }
-                    if (!RegExp(r'^\d+$').hasMatch(value)) {
-                      return 'Enter a valid phone number';
-                    }
-                    return null;
-                  },
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Email is required';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              // Preferences Field
+              TextFormField(
+                controller: _preferencesController,
+                decoration: InputDecoration(
+                  labelText: 'Preferences',
+                  border: OutlineInputBorder(),
                 ),
-                SizedBox(height: 16),
-                // Password Field
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Password is required';
-                    }
-                    return null;
-                  },
+              ),
+              SizedBox(height: 16),
+              // Phone Number Field
+              TextFormField(
+                controller: _phoneNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
                 ),
-                SizedBox(height: 16),
-
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _selectedImage == null ? "No image selected" : "Image selected",
-                        style: TextStyle(
-                          color: _selectedImage == null ? Colors.red : Colors.green,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Phone Number is required';
+                  }
+                  if (!RegExp(r'^\d+$').hasMatch(value)) {
+                    return 'Enter a valid phone number';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              // Password Field
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                  suffixIcon: Icon(Icons.visibility_off),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Password is required';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              // Image Picker Section
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _selectedImage == null ? "No image selected" : "Image selected",
+                      style: TextStyle(
+                        color: _selectedImage == null ? Colors.red : Colors.green,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 40, // Adjust the size of the icon
+                        backgroundColor: Colors.transparent,
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 20,
+                          color: Colors.grey[700],
                         ),
                       ),
-
-                      SizedBox(width: 16),
-
-                      GestureDetector(
-                        onTap: _pickImage,
-                        child: CircleAvatar(
-                          radius: 40, // Adjust the size of the icon
-                          backgroundColor: Colors.transparent,
-                          child: Icon(
-                            Icons.camera_alt,
-                            size: 20,
-                            color: Colors.grey[700],
-                          ),
-
-                        ),
-                      ),
-                      // Space between icon and text
-                      // Text indicating the selection status
-
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              // Submit Button
+              // ElevatedButton(
+              //   onPressed: () {
+              //     _submitForm(context);
+              //   },
+              //   child: Text('Submit'),
+              // ),
+              ElevatedButton(
+                onPressed:(){
+                  _submitForm(context);
+                } ,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange[300],
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 5,
+                ),
+                child: Text(
+                  "SignUp",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                SizedBox(width: 16),
-                // Submit Button
-                ElevatedButton(
-                  onPressed: () {
-                    _submitForm(context);
-                  },
-                  child: Text('Submit'),
+              ),
+              SizedBox(height: 16),
+              // Link to SignIn page
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SignIn()),
+                  );
+                },
+                child: Text(
+                  'Already have an account? Sign In',
+                  style: TextStyle(color: Colors.blue),
                 ),
-                SizedBox(height: 16),
-                // Link to SignIn page
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignIn()),
-                    );
-                  },
-                  child: Text(
-                    'Already have an account? Sign In',
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
 }

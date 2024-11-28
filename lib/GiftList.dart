@@ -11,10 +11,9 @@ import 'GiftDetails.dart';
 class GiftListPage extends StatefulWidget {
   Event event;
   Friend User;
-  Friend? friend;
   final bool isOwner;
 
-  GiftListPage({required this.event, required this.isOwner, required this.User, this.friend});
+  GiftListPage({required this.event, required this.isOwner, required this.User});
 
   @override
   _GiftListPageState createState() => _GiftListPageState();
@@ -70,8 +69,10 @@ class _GiftListPageState extends State<GiftListPage> {
                     color: gift.status == 'Pledged' ? Colors.red[100] : Colors.white,
                     child: ListTile(
                       leading: gift.image != null
-                          ? Image.memory(base64Decode(gift.image!.split(',').last))
-                          : Icon(Icons.image, size: 50),
+                          ?  CircleAvatar(
+                        radius: 25,
+                        backgroundImage: MemoryImage(base64Decode(gift.image!.split(',').last)),
+                      ) : Icon(Icons.image, size: 50),
                       title: Text(gift.name, style: TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -117,7 +118,7 @@ class _GiftListPageState extends State<GiftListPage> {
                           List<Gift> updatedlist = await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                                isPledger: false,friend: widget.User,))
+                                isPledger: false,User: widget.User,))
                           );
                           setState(() {
                             widget.event.giftlist=updatedlist;
@@ -130,7 +131,7 @@ class _GiftListPageState extends State<GiftListPage> {
                           List<Gift> updatedlist = await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                                isPledger: (gift.PledgerID==widget.User.id)?true:false,friend: widget.User,))
+                                isPledger: (gift.PledgerID==widget.User.id)?true:false,User: widget.User,))
                           );
 
                           setState(() {

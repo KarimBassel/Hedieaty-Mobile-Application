@@ -27,9 +27,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Databaseclass? db;
   List<Friend>? filteredfriends;
-  final FlutterNativeContactPicker _contactPicker =
-  FlutterNativeContactPicker();
-  List<Contact>? _contacts;
+  final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
+
   // final List<Friend> friends = [
   //   Friend(
   //     image:
@@ -212,15 +211,12 @@ class _HomeState extends State<Home> {
               //print(ExtractedNumber);
               if(widget.User.PhoneNumber==ExtractedNumber)showCustomSnackBar(context,"Cannot Add Yourself");
               else {
-                dynamic newfriend = await Friend.registerFriend(
-                    widget.User.id!, ExtractedNumber);
-                //returned false from search query of the phone number
+                dynamic newfriend = await Friend.registerFriend(widget.User.id!, ExtractedNumber);
                 if (newfriend is bool) {
                   showCustomSnackBar(context, "User Not Found");
                 }
                 else {
-                  Friend updatedUser = await Friend.getUserObject(
-                      widget.User.id!);
+                  Friend updatedUser = await Friend.getUserObject(widget.User.id!);
                   widget.User = updatedUser!;
                   filteredfriends = widget.User.friendlist;
                 }
