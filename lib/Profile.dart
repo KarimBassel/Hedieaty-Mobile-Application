@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Authentication.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Gift.dart';
 import 'package:hedieatymobileapplication/EventList.dart';
 import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
+import 'package:hedieatymobileapplication/SignIn.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'Base Classes/Friend.dart';
@@ -19,6 +22,8 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   File? _image;
   bool switchstate=false;
+  AuthService auth = AuthService();
+  Databaseclass db = Databaseclass();
   TextEditingController _nameController = TextEditingController(text: "Cristiano Ronaldo");
   TextEditingController _emailController = TextEditingController(text: "Cristiano@eng.asu.edu.eg");
   TextEditingController _preferencesController = TextEditingController(text: "Electronics, Sports");
@@ -36,6 +41,7 @@ class _ProfileState extends State<Profile> {
       bool update = await Friend.updateUser(widget.User.id!,"Image",encodedim);
       Friend? updateduser = await Friend.getUserById(widget.User.id!);
       widget.User=updateduser!;
+      db.syncUsersTableToFirebase();
       setState(() {
         _image = File(pickedImage.path);
 
@@ -76,6 +82,8 @@ class _ProfileState extends State<Profile> {
                 bool update = await Friend.updateUser(widget.User.id!,field,controller.text);
                 Friend? updateduser = await Friend.getUserById(widget.User.id!);
                 widget.User=updateduser!;
+
+                db.syncUsersTableToFirebase();
                 setState(() {});
                 Navigator.of(context).pop();
               },
@@ -166,6 +174,9 @@ class _ProfileState extends State<Profile> {
                       bool update = await Friend.updateUser(widget.User.id!,"Notifications",(value==false)?0:1);
                       Friend? updateduser = await Friend.getUserObject(widget.User.id!);
                       widget.User=updateduser!;
+
+                      db.syncUsersTableToFirebase();
+
                       setState(() {
                         switchstate = value;
                       });
@@ -193,6 +204,32 @@ class _ProfileState extends State<Profile> {
             List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(widget.User.id!);
             Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
           }),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: (){
+              auth.signOut();
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => SignIn()),
+                    (Route<dynamic> route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[400],
+              padding: EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              elevation: 5,
+            ),
+            child: Text(
+              "SignOut",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
 import 'package:hedieatymobileapplication/Home.dart';
 import 'package:image_picker/image_picker.dart';
+import 'Base Classes/Authentication.dart';
 import 'signup.dart';
 
 class SignIn extends StatefulWidget {
@@ -14,28 +16,43 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn>{
   final Databaseclass db = Databaseclass();
+  AuthService auth = AuthService();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _EmailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   void _submitForm() async{
     if (_formKey.currentState!.validate()) {
-      final String phoneNumber = _phoneNumberController.text.trim();
+      final String Email = _EmailController.text.trim();
       final String password = _passwordController.text.trim();
 
       //List<Map<String,dynamic>> response =  db.readData("SELECT * FROM Users WHERE PhoneNumber='${phoneNumber}' and Password='${password}'");
-      dynamic user = await Friend.getuser(phoneNumber, password);
-      if(user is bool){
-        showCustomSnackBar(context, "Incorrect Phone or Password");
+      // dynamic user = await Friend.getUser(Email, password);
+      // if(user is bool){
+      //   showCustomSnackBar(context, "Incorrect Phone or Password");
+      // }
+      // else{
+      //   // List<Friend> friendlist = await Friend.getFriends(user.id);
+      //   // user.friendlist = friendlist;
+      //   // List<Event> eventlist = await Friend.getEvents(user.id);
+      //   // user.eventlist = eventlist;
+      //   user = await Friend.getUserObject(user.id);
+      //   print(user.id);
+      //   Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:user)));
+      // }
+
+      dynamic user = await auth.signInWithEmailAndPassword(Email, password);
+      if(user==null){
+        showCustomSnackBar(context, "Incorrect Email or Password");
       }
       else{
-        // List<Friend> friendlist = await Friend.getFriends(user.id);
-        // user.friendlist = friendlist;
-        // List<Event> eventlist = await Friend.getEvents(user.id);
-        // user.eventlist = eventlist;
-        user = await Friend.getUserObject(user.id);
-        print(user.id);
-        Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:user)));
+        Friend authenticateduser = await Friend.getUserObject(user);
+        print(user);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => Home(User:authenticateduser)),
+              (Route<dynamic> route) => false,
+        );
+        //Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:authenticateduser)));
       }
 
     }
@@ -98,18 +115,18 @@ class _SignInState extends State<SignIn>{
                 SizedBox(height: 16),
                 // Phone Number Field
                 TextFormField(
-                  controller: _phoneNumberController,
+                  controller: _EmailController,
                   decoration: InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: 'Email',
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Phone Number is required';
+                      return 'Email is required';
                     }
-                    if (!RegExp(r'^\d+$').hasMatch(value)) {
-                      return 'Enter a valid phone number';
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      return 'Enter a valid email';
                     }
                     return null;
                   },
@@ -161,9 +178,9 @@ class _SignInState extends State<SignIn>{
                 // Link to SignUp page
                 TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Signup()), // Navigate to SignUp page
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => Signup()),
+                          (Route<dynamic> route) => false,
                     );
                   },
                   child: Text(

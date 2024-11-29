@@ -48,25 +48,31 @@ class Friend {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'email': email,
-      'preferences': preferences,
+      'ID': id,
+      'Name': name,
+      'Email':email,
+      'Preferences': preferences,
       'upev': upev,
-      'image': image,
-      'phone': PhoneNumber,
+      'Image': image,
+      'PhoneNumber': PhoneNumber,
+      'Notifications':notifications,
     };
   }
 
-  static Future<dynamic> getuser(String phone, String pass) async {
+  static Future<dynamic> getUser(String email, String pass) async {
     final db = await Databaseclass();
 
+    // Update SQL query to check email and password instead of phone and password
     List<Map<String, dynamic>> response = await db.readData(
-        "SELECT * FROM Users WHERE PhoneNumber='${phone}' and Password='${pass}'");
+        "SELECT * FROM Users WHERE Email='${email}' and Password='${pass}'");
 
-    if(response.isEmpty)return false;
+    // If the response is empty, return false
+    if (response.isEmpty) return false;
+
+    // Otherwise, return the user data (assumes Friend.fromMap is the appropriate mapping)
     else return Friend.fromMap(response[0]);
   }
+
 
   static Future<List<Friend>> getFriends(var userID) async {
     final db = await Databaseclass();

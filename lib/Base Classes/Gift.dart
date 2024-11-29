@@ -45,14 +45,15 @@ class Gift {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'category': category,
-      'price': price,
-      'status': status,
-      'eventId': eventId,
-      'image' : image,
+      'ID': id,
+      'Name': name,
+      'Description': description,
+      'Category': category,
+      'Price': price,
+      'Status': (status=="Available")?0:1,
+      'EventID': eventId,
+      'Image' : image,
+      'PledgerID':PledgerID??-1
     };
   }
  static Future<List<Gift>> getGiftList(int eventId) async {

@@ -33,12 +33,14 @@ class Event {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'name': name,
-      'date': date,
-      'location': location,
-      'description': description,
-      'userId': userId,
+      'ID': id,
+      'Status':"Upcoming",
+      'Category':category,
+      'Name': name,
+      'Date': date?.toIso8601String().split('T')[0],
+      'Location': location,
+      'Description': description,
+      'UserID': userId,
     };
   }
 

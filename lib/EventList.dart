@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
 import 'package:hedieatymobileapplication/GiftList.dart';
 import 'Base Classes/Event.dart';
@@ -16,7 +17,7 @@ class EventListPage extends StatefulWidget {
 class _EventListPageState extends State<EventListPage> {
   String _sortCriterion = 'Name';
   List<Event> events=[];
-
+  Databaseclass db = Databaseclass();
   @override
   void initState() {
     super.initState();
@@ -106,15 +107,17 @@ class _EventListPageState extends State<EventListPage> {
                 if (widget.isOwner)
                   IconButton(
                     icon: Icon(Icons.edit),
-                    onPressed: () {
+                    onPressed: () async{
                       _editEvent(event);
+                      await db.syncEventsTableToFirebase();
                     },
                   ),
                 if (widget.isOwner)
                   IconButton(
                     icon: Icon(Icons.delete),
-                    onPressed: () {
+                    onPressed: () async{
                       _deleteEvent(event);
+                      await db.syncEventsDeletionToFirebase(event.id!);
                     },
                   ),
               ],
@@ -290,6 +293,7 @@ class _EventListPageState extends State<EventListPage> {
                       bool? updateStatus = await Event.updateEvent(event);
                       showCustomSnackBar(context, "Event Updated Successfully", backgroundColor: Colors.green);
                     }
+                    await db.syncEventsTableToFirebase();
                     Navigator.of(context).pop();
                     _loadEvents();
                   },

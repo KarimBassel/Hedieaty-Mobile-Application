@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftList.dart';
@@ -23,6 +24,7 @@ class GiftDetails extends StatefulWidget {
 }
 
 class _GiftDetailsState extends State<GiftDetails> {
+  Databaseclass db = Databaseclass();
   File? _image;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -73,6 +75,8 @@ class _GiftDetailsState extends State<GiftDetails> {
       bool updatestatus = await Gift.updateGift(widget.gift);
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +152,7 @@ class _GiftDetailsState extends State<GiftDetails> {
                     onPressed: ()async{
                       _togglePledge();
                       Event? e = await Event.getEventById(widget.gift.eventId!);
+                      await db.syncGiftsTableToFirebase();
                       Navigator.of(context)
                         ..pop()
                         ..pop();

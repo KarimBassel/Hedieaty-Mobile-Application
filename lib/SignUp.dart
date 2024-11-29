@@ -2,6 +2,7 @@ import 'dart:convert'; // For Base64 encoding
 import 'dart:io'; // For File operations
 import 'dart:typed_data'; // For Uint8List
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
 import 'SignIn.dart';
 import 'Base Classes/Friend.dart';
@@ -14,6 +15,7 @@ class Signup extends StatefulWidget {
 
 class _SignUpState extends State<Signup> {
   Databaseclass db = Databaseclass();
+  AuthService auth = AuthService();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -47,8 +49,11 @@ class _SignUpState extends State<Signup> {
       if (await Friend.getUserByPhoneNumber(phoneNumber)) {
         showCustomSnackBar(context, "Phone number already registered");
       } else {
-        print(await db.insertData(
-            "INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password, Image) VALUES ('$name', '$email', '$preferences', '$phoneNumber', '$password', '$encodedImage');"));
+        // print(await db.insertData(
+        //     "INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password, Image) VALUES ('$name', '$email', '$preferences', '$phoneNumber', '$password', '$encodedImage');"));
+
+        auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage);
+
         showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
         _nameController.clear();
         _emailController.clear();
@@ -56,7 +61,7 @@ class _SignUpState extends State<Signup> {
         _phoneNumberController.clear();
         _passwordController.clear();
         image.delete();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
+        //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
       }
     }
   }
@@ -229,6 +234,7 @@ class _SignUpState extends State<Signup> {
               ElevatedButton(
                 onPressed:(){
                   _submitForm(context);
+
                 } ,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange[300],
@@ -251,9 +257,9 @@ class _SignUpState extends State<Signup> {
               // Link to SignIn page
               TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
+                  Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => SignIn()),
+                        (Route<dynamic> route) => false,
                   );
                 },
                 child: Text(

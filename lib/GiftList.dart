@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'Base Classes/Gift.dart';
 import 'Base Classes/Event.dart';
@@ -22,16 +24,157 @@ class GiftListPage extends StatefulWidget {
 class _GiftListPageState extends State<GiftListPage> {
   final ImagePicker _picker = ImagePicker();
   String _sortCriterion = 'Name';
+  Databaseclass db = Databaseclass();
+
+
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    // var subs=FirebaseDatabase.instance.ref().child('Gifts').onChildAdded.listen((event){
+    //   widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
+    //   setState(() {
+    //
+    //   });
+    // });
     return Scaffold(
       appBar: AppBar(
         title: Text('Gifts for ${widget.event.name}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: isLandscape?
+            //if orientation is landscape
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  Text('Event: ${widget.event.name}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Category: ${widget.event.category}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Date: ${widget.event.date
+                      ?.toIso8601String().split('T')[0]}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  //Text('Description: ${widget.event.description}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Status: ${widget.event.status}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Location: ${widget.event.location}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 16.0),
+                  Divider(),
+                  DropdownButton<String>(
+                    value: _sortCriterion,
+                    onChanged: (value) {
+                      setState(() {
+                        _sortCriterion = value!;
+                        _sortGifts();
+                      });
+                    },
+                    items: ['Name', 'Category', 'Status']
+                        .map((criterion) => DropdownMenuItem(
+                      value: criterion,
+                      child: Text('Sort by $criterion'),
+                    ))
+                        .toList(),
+                  ),
+                  SizedBox(height: 8.0),
+                ],
+              ),
+            ),
+
+            // Gifts List
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.event.giftlist!.length,
+                itemBuilder: (context, index) {
+                  final gift = widget.event.giftlist![index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    color: gift.status == 'Pledged' ? Colors.red[100] : Colors.white,
+                    child: ListTile(
+                      leading: gift.image != null
+                          ?  CircleAvatar(
+                        radius: 25,
+                        backgroundImage: MemoryImage(base64Decode(gift.image!.split(',').last)),
+                      ) : Icon(Icons.image, size: 50),
+                      title: Text(gift.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.orangeAccent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text('${gift.category}', style: TextStyle(fontSize: 10, color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.isOwner && gift.status == "Available")
+                            IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () async{
+                                  _editGift(gift);
+                                  // await db.syncGiftsTableToFirebase();
+                                  setState(() {
+
+                                  });
+                                }
+                            ),
+                          if (widget.isOwner && gift.status == "Available")
+                            IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: ()async {
+                                  _deleteGift(gift);
+                                  //await db.syncGiftsDeletionToFirebase(gift.id!);
+                                  setState(() {
+
+                                  });
+                                }
+                            ),
+                        ],
+                      ),
+                      onTap: () async{
+                        if(widget.isOwner){
+                          print("okash");
+                          List<Gift> updatedlist = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
+                                isPledger: false,User: widget.User,))
+                          );
+                          setState(() {
+                            widget.event.giftlist=updatedlist;
+                          });
+                        }
+                        else{
+                          print(widget.User!.PhoneNumber);
+                          print(gift.PledgerID);
+                          print(widget.User.id);
+                          List<Gift> updatedlist = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
+                                isPledger: (gift.PledgerID==widget.User.id)?true:false,User: widget.User,))
+                          );
+
+                          setState(() {
+                            widget.event.giftlist=updatedlist;
+                          });
+                        }
+
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        )
+
+
+//if orientation is portrait
+
+        : Column(
           children: [
             Text('Event: ${widget.event.name}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Text('Category: ${widget.event.category}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -93,8 +236,9 @@ class _GiftListPageState extends State<GiftListPage> {
                           if (widget.isOwner && gift.status == "Available")
                             IconButton(
                                 icon: Icon(Icons.edit),
-                                onPressed: () {
+                                onPressed: ()async {
                                   _editGift(gift);
+                                  //await db.syncGiftsTableToFirebase();
                                   setState(() {
 
                                   });
@@ -103,8 +247,9 @@ class _GiftListPageState extends State<GiftListPage> {
                           if (widget.isOwner && gift.status == "Available")
                             IconButton(
                                 icon: Icon(Icons.delete),
-                                onPressed: () {
+                                onPressed: () async{
                                   _deleteGift(gift);
+                                  //await db.syncGiftsDeletionToFirebase(gift.id!);
                                   setState(() {
 
                                   });
@@ -151,8 +296,9 @@ class _GiftListPageState extends State<GiftListPage> {
       floatingActionButton: !widget.isOwner
           ? null
           : FloatingActionButton(
-        onPressed: (){
+        onPressed: ()async{
           _addGift();
+          await db.syncGiftsTableToFirebase();
           setState(() {
 
           });
@@ -295,6 +441,7 @@ class _GiftListPageState extends State<GiftListPage> {
                   showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
                 }
                 widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
+                await db.syncGiftsTableToFirebase();
                 // Refresh gift list after update
                 setState(() {
 

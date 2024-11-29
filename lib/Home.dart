@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
@@ -56,8 +57,6 @@ class _HomeState extends State<Home> {
     db = Databaseclass();
     filteredfriends=widget.User.friendlist;
   }
-
-
 
 
   @override
@@ -271,6 +270,7 @@ class _HomeState extends State<Home> {
               }
               else{
                 Friend updatedUser = await Friend.getUserObject(widget.User.id!);
+                await db!.syncFriendsTableToFirebase();
                 widget.User=updatedUser!;
                 filteredfriends = widget.User.friendlist;
               }
@@ -279,7 +279,7 @@ class _HomeState extends State<Home> {
             setState(() {
 
             });
-
+            await db!.syncFriendsTableToFirebase();
             Navigator.of(context).pop();
           },
           child: Text('Save'),
