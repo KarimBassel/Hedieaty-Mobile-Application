@@ -144,7 +144,6 @@ CREATE TABLE Friends (
     final databaseRef = FirebaseDatabase.instance.ref();
 
     try {
-      // Delete all rows in the tables before syncing data
       await db!.delete('Users');
       await db.delete('Events');
       await db.delete('Gifts');
@@ -178,7 +177,6 @@ CREATE TABLE Friends (
       if (eventsEvent.snapshot.exists) {
         var eventsData = eventsEvent.snapshot.value;
         if (eventsData is Map) {
-          // Handle as Map if it's a Map
           eventsData.forEach((key, value) {
             var event = value as Map<dynamic, dynamic>;
             db.insert('Events', {
@@ -193,7 +191,6 @@ CREATE TABLE Friends (
             }, conflictAlgorithm: ConflictAlgorithm.replace);
           });
         } else if (eventsData is List) {
-          // Handle as List if it's a List
           for (var event in eventsData) {
             if (event != null) {
               db.insert('Events', {
@@ -217,7 +214,6 @@ CREATE TABLE Friends (
       if (giftsEvent.snapshot.exists) {
         var giftsData = giftsEvent.snapshot.value;
         if (giftsData is Map) {
-          // If it's a Map, handle it like key-value pairs
           giftsData.forEach((key, value) {
             var gift = value as Map<dynamic, dynamic>;
             db.insert('Gifts', {
@@ -233,7 +229,6 @@ CREATE TABLE Friends (
             }, conflictAlgorithm: ConflictAlgorithm.replace);
           });
         } else if (giftsData is List) {
-          // If it's a List, iterate over the list of gifts
           for (var gift in giftsData) {
             if (gift != null) {
               db.insert('Gifts', {
@@ -258,7 +253,6 @@ CREATE TABLE Friends (
       if (friendsEvent.snapshot.exists) {
         var friendsData = friendsEvent.snapshot.value;
         if (friendsData is Map) {
-          // If it's a Map, handle it like key-value pairs
           friendsData.forEach((key, value) {
             var friend = value as Map<dynamic, dynamic>;
             db.insert('Friends', {
@@ -267,7 +261,6 @@ CREATE TABLE Friends (
             }, conflictAlgorithm: ConflictAlgorithm.replace);
           });
         } else if (friendsData is List) {
-          // If it's a List, iterate over the list of friends
           for (var friend in friendsData) {
             if (friend != null) {
               db.insert('Friends', {
@@ -291,25 +284,21 @@ CREATE TABLE Friends (
 
     // Listen for changes in Users
     databaseRef.child('Users').onValue.listen((event) {
-      //print('Users updated in Firebase!');
       syncFromFirebase(); // Sync your database
     });
 
     // Listen for changes in Events
     databaseRef.child('Events').onValue.listen((event) {
-      //print('Events updated in Firebase!');
       syncFromFirebase();
     });
 
     // Listen for changes in Friends
     databaseRef.child('Friends').onValue.listen((event) {
-      //print('Friends updated in Firebase!');
       syncFromFirebase();
     });
 
     // Listen for changes in Gifts
     databaseRef.child('Gifts').onValue.listen((event) {
-      //print('Gifts updated in Firebase!');
       syncFromFirebase();
     });
 
@@ -319,28 +308,19 @@ CREATE TABLE Friends (
 
 
   Future<void> syncUsersTableToFirebase() async {
-    // Get all users from SQLite
     Database? db = await MyDataBase;
     final firebaseRef = FirebaseDatabase.instance.ref();
     List<Map<String, dynamic>> users = await db!.query('Users');
 
     for (var user in users) {
-      // Create Friend object from the row
       Friend friend = Friend.fromMap(user);
+      String firebaseUid = friend.id.toString();
 
-      // Get the UID (Firebase UID) and hashCode for Firebase node
-      String firebaseUid = friend.id.toString(); // Assuming ID is hashCode from UID
-
-      // Reference to the user's node in Firebase
       DatabaseReference userRef = firebaseRef.child('Users').child(firebaseUid);
-
-      // Check if the user exists in Firebase
       DatabaseEvent event = await userRef.once();
       if (event.snapshot.exists) {
-        // Update user data if it exists
         await userRef.update(friend.toMap());
       } else {
-        // Add new user if it does not exist
         await userRef.set(friend.toMap());
       }
     }
@@ -353,19 +333,12 @@ CREATE TABLE Friends (
     List<Map<String, dynamic>> events = await db!.query('Events');
 
     for (var event in events) {
-      // Create Event object from the row
       Event currentEvent = Event.fromMap(event);
-
-      // Reference to the event's node in Firebase
       DatabaseReference eventRef = firebaseRef.child('Events').child(currentEvent.id.toString());
-
-      // Check if the event exists in Firebase
       DatabaseEvent firebaseEvent = await eventRef.once();
       if (firebaseEvent.snapshot.exists) {
-        // Update event data if it exists
         await eventRef.update(currentEvent.toMap());
       } else {
-        // Add new event if it does not exist
         await eventRef.set(currentEvent.toMap());
       }
     }
@@ -381,19 +354,12 @@ CREATE TABLE Friends (
     List<Map<String, dynamic>> gifts = await db!.query('Gifts');
 
     for (var gift in gifts) {
-      // Create Gift object from the row
       Gift currentGift = Gift.fromMap(gift);
-
-      // Reference to the gift's node in Firebase
       DatabaseReference giftRef = firebaseRef.child('Gifts').child(currentGift.id.toString());
-
-      // Check if the gift exists in Firebase
       DatabaseEvent firebaseGift = await giftRef.once();
       if (firebaseGift.snapshot.exists) {
-        // Update gift data if it exists
         await giftRef.update(currentGift.toMap());
       } else {
-        // Add new gift if it does not exist
         await giftRef.set(currentGift.toMap());
       }
     }
@@ -406,39 +372,27 @@ CREATE TABLE Friends (
     Database? db = await MyDataBase;
     final firebaseRef = FirebaseDatabase.instance.ref();
 
-    // Get all friends from SQLite
     List<Map<String, dynamic>> friends = await db!.query('Friends');
 
     for (var friend in friends) {
-      // Manually extract userID and friendID from SQLite record
-      int userID = friend['UserID']; // Column for UserID
-      int friendID = friend['FriendID']; // Column for FriendID
+      int userID = friend['UserID'];
+      int friendID = friend['FriendID'];
 
-      // Create a Map for the Friend record
+
       Map<String, dynamic> friendMap = {
         'UserID': userID,
         'FriendID': friendID,
       };
 
-      // Reference to the friend's node in Firebase
       DatabaseReference friendRef = firebaseRef.child('Friends').child(userID.toString());
 
-      // Check if the friend record exists in Firebase
       DatabaseEvent firebaseFriend = await friendRef.once();
       if (firebaseFriend.snapshot.exists) {
-        // Update friend data if it exists
         await friendRef.update(friendMap);
       } else {
-        // Add new friend record if it does not exist
         await friendRef.set(friendMap);
       }
     }
-  }
-
-  Future<void> syncAllTablesToFirebase() async {
-    await syncUsersTableToFirebase();
-    //await syncEventsTableToFirebase();
-    //await syncGiftsTableToFirebase();
   }
 
 

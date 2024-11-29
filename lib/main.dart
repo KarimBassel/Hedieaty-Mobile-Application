@@ -21,12 +21,14 @@ import 'firebase_options.dart';
 import 'Base Classes/Database.dart';
 import 'Base Classes/Friend.dart';
 void main() async{
+  //Firebase init
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+  //FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
 
+  //Firebase Listener Init
   Databaseclass dbHelper = Databaseclass();
   dbHelper.setupRealtimeListeners();
 

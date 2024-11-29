@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,7 +16,7 @@ class GiftDetails extends StatefulWidget {
   bool isPledged;
   bool isPledger;//this boolean tells if this gift is pledged by User or not to grant him the cancel pledge option
   Friend? User;
-  final Gift gift;
+   Gift gift;
 
   GiftDetails({super.key,required this.isOwner,required this.isPledged, required this.gift,required this.isPledger,this.User});
 
@@ -32,9 +33,31 @@ class _GiftDetailsState extends State<GiftDetails> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _statusController = TextEditingController();
 
+  //real-time sync & updating class attributtes
+  Future<void> fetchGiftFromLocalDb() async{
+    await Future.delayed(const Duration(seconds: 1));
+    Gift? g = await Gift.getGiftById(widget.gift.id!);
+    widget.gift=g!;
+    widget.isPledged = (widget.gift.status=="Available")?false:true;
+    widget.isPledger = (widget.gift.PledgerID==widget.User!.id);
+    _statusController.text = widget.isPledged ? 'Pledged' : 'Available';
+
+    setState(() {
+
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    //for real-time sync
+    final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts/${widget.gift.id}');
+    _giftsRef.onValue.listen((event) async {
+      if (event.snapshot.exists) {
+        await fetchGiftFromLocalDb();
+      }
+    });
+
     _nameController.text = widget.gift.name;
     _descriptionController.text = widget.gift.description;
     _categoryController.text = widget.gift.category;

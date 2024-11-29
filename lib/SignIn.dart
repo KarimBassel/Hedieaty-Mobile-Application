@@ -26,22 +26,9 @@ class _SignInState extends State<SignIn>{
       final String Email = _EmailController.text.trim();
       final String password = _passwordController.text.trim();
 
-      //List<Map<String,dynamic>> response =  db.readData("SELECT * FROM Users WHERE PhoneNumber='${phoneNumber}' and Password='${password}'");
-      // dynamic user = await Friend.getUser(Email, password);
-      // if(user is bool){
-      //   showCustomSnackBar(context, "Incorrect Phone or Password");
-      // }
-      // else{
-      //   // List<Friend> friendlist = await Friend.getFriends(user.id);
-      //   // user.friendlist = friendlist;
-      //   // List<Event> eventlist = await Friend.getEvents(user.id);
-      //   // user.eventlist = eventlist;
-      //   user = await Friend.getUserObject(user.id);
-      //   print(user.id);
-      //   Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:user)));
-      // }
-
+      // Sign in using Firebase Authentication
       dynamic user = await auth.signInWithEmailAndPassword(Email, password);
+      //if user not found it returns null
       if(user==null){
         showCustomSnackBar(context, "Incorrect Email or Password");
       }

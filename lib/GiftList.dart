@@ -26,17 +26,29 @@ class _GiftListPageState extends State<GiftListPage> {
   String _sortCriterion = 'Name';
   Databaseclass db = Databaseclass();
 
+  Future<void> fetchGiftsFromLocalDb() async {
+    await Future.delayed(const Duration(seconds: 1));
+    Event? e = await Event.getEventById(widget.event.id!);
+    widget.event = e!;
+    setState(() {});
+  }
 
+
+  @override
+  void initState() {
+
+    final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts');
+    _giftsRef.orderByChild('EventID').equalTo(widget.event.id).onValue.listen((event)async {
+      if (event.snapshot.exists) {
+        await fetchGiftsFromLocalDb();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    // var subs=FirebaseDatabase.instance.ref().child('Gifts').onChildAdded.listen((event){
-    //   widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
-    //   setState(() {
-    //
-    //   });
-    // });
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Gifts for ${widget.event.name}'),
@@ -116,7 +128,6 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.edit),
                                 onPressed: () async{
                                   _editGift(gift);
-                                  // await db.syncGiftsTableToFirebase();
                                   setState(() {
 
                                   });
@@ -127,7 +138,6 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.delete),
                                 onPressed: ()async {
                                   _deleteGift(gift);
-                                  //await db.syncGiftsDeletionToFirebase(gift.id!);
                                   setState(() {
 
                                   });
@@ -238,7 +248,6 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.edit),
                                 onPressed: ()async {
                                   _editGift(gift);
-                                  //await db.syncGiftsTableToFirebase();
                                   setState(() {
 
                                   });
@@ -249,7 +258,6 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.delete),
                                 onPressed: () async{
                                   _deleteGift(gift);
-                                  //await db.syncGiftsDeletionToFirebase(gift.id!);
                                   setState(() {
 
                                   });
@@ -331,17 +339,17 @@ class _GiftListPageState extends State<GiftListPage> {
     final descriptionController = TextEditingController(text: gift?.description);
     final priceController = TextEditingController(text: gift?.price.toString());
 
-    // Dropdown value for status
-    String status = gift?.status ?? 'Available'; // Default status to 'Available'
+
+    String status = gift?.status ?? 'Available';
     final List<String> statusOptions = ['Available', 'Pledged'];
 
-    // Variable to store the selected image file
+
     File? imageFile;
 
-    // If gift has an image, decode the image and show it
+
     String? encodedImage = gift?.image;
 
-    // Function to pick an image from the gallery
+
     void _pickImage() async {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
@@ -351,10 +359,9 @@ class _GiftListPageState extends State<GiftListPage> {
       }
     }
 
-    // Decode base64 image if the gift has an image
     Image? _getBase64Image(String base64Image) {
       try {
-        // Decode the base64 string to bytes and display the image
+
         Uint8List bytes = base64Decode(base64Image);
         return Image.memory(bytes);
       } catch (e) {
@@ -372,7 +379,6 @@ class _GiftListPageState extends State<GiftListPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Dropdown for status placed at the beginning of the row
 
                 TextField(controller: nameController, decoration: InputDecoration(labelText: 'Gift Name')),
                 TextField(controller: categoryController, decoration: InputDecoration(labelText: 'Category')),
@@ -381,7 +387,7 @@ class _GiftListPageState extends State<GiftListPage> {
                 Center(
                   child: IconButton(
                     icon: Icon(Icons.camera_alt),
-                    onPressed: _pickImage, // Pick image when clicked
+                    onPressed: _pickImage,
                   ),
                 ),
                 SizedBox(height: 10),
@@ -399,7 +405,7 @@ class _GiftListPageState extends State<GiftListPage> {
                 // Check if an image is selected and encode it
                 if (imageFile != null) {
                   final imageBytes = await File(imageFile!.path).readAsBytes();
-                  encodedImage = base64Encode(imageBytes); // Use the newly selected image
+                  encodedImage = base64Encode(imageBytes);
                 }
 
                 if (gift == null) {
@@ -442,7 +448,7 @@ class _GiftListPageState extends State<GiftListPage> {
                 }
                 widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
                 await db.syncGiftsTableToFirebase();
-                // Refresh gift list after update
+
                 setState(() {
 
                 });
@@ -477,10 +483,10 @@ class _GiftListPageState extends State<GiftListPage> {
       content: Row(
         children: [
           Icon(
-            Icons.error_outline,  // Customize the icon
+            Icons.error_outline,
             color: Colors.white,
           ),
-          SizedBox(width: 8), // Add some space between the icon and the text
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
@@ -488,16 +494,16 @@ class _GiftListPageState extends State<GiftListPage> {
                 color: Colors.white,
                 fontSize: 16,
               ),
-              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,  // Set the background color
-      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
-      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
-      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
-      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+      backgroundColor: backgroundColor,
+      duration: Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
     );

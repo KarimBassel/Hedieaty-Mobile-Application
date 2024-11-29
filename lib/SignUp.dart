@@ -1,6 +1,6 @@
-import 'dart:convert'; // For Base64 encoding
-import 'dart:io'; // For File operations
-import 'dart:typed_data'; // For Uint8List
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
@@ -52,6 +52,7 @@ class _SignUpState extends State<Signup> {
         // print(await db.insertData(
         //     "INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password, Image) VALUES ('$name', '$email', '$preferences', '$phoneNumber', '$password', '$encodedImage');"));
 
+        //Sign up using Firebase Authentication
         auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage);
 
         showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
@@ -110,8 +111,8 @@ class _SignUpState extends State<Signup> {
             children: [
               Center(
                 child: CircleAvatar(
-                  radius: 100, // Adjust the size of the avatar
-                  backgroundImage: AssetImage('Assets/logo.webp'), // Logo as background
+                  radius: 100,
+                  backgroundImage: AssetImage('Assets/logo.webp'),
                 ),
               ),
               SizedBox(height: 16),
@@ -224,13 +225,6 @@ class _SignUpState extends State<Signup> {
                 ),
               ),
               SizedBox(height: 16),
-              // Submit Button
-              // ElevatedButton(
-              //   onPressed: () {
-              //     _submitForm(context);
-              //   },
-              //   child: Text('Submit'),
-              // ),
               ElevatedButton(
                 onPressed:(){
                   _submitForm(context);

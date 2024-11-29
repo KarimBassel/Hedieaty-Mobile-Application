@@ -1,3 +1,4 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
@@ -18,9 +19,24 @@ class _EventListPageState extends State<EventListPage> {
   String _sortCriterion = 'Name';
   List<Event> events=[];
   Databaseclass db = Databaseclass();
+
+  Future<void> fetchEventsFromLocalDb() async {
+    await Future.delayed(const Duration(seconds: 1));
+    _loadEvents();
+    if(widget.isOwner)widget.User = await Friend.getUserObject(widget.User.id!);
+    else widget.friend = await Friend.getUserObject(widget.friend!.id!);
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    final DatabaseReference _eventRef = FirebaseDatabase.instance.ref('Events');
+    _eventRef.orderByChild('UserID').equalTo(widget.isOwner?widget.User.id!:widget.friend!.id).onValue.listen((event)async {
+      if (event.snapshot.exists) {
+        await fetchEventsFromLocalDb();
+      }
+    });
     _loadEvents();
   }
 
@@ -82,7 +98,7 @@ class _EventListPageState extends State<EventListPage> {
           : ListView.builder(
         itemCount: events.length,
         itemBuilder: (context, index) {
-          final event = events[index];
+          var event = events[index];
           return ListTile(
             title: Text(event.name, style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Row(
@@ -122,7 +138,9 @@ class _EventListPageState extends State<EventListPage> {
                   ),
               ],
             ),
-            onTap: () {
+            onTap: () async{
+              Event? e = await Event.getEventById(event.id!);
+              event = e!;
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -331,10 +349,10 @@ class _EventListPageState extends State<EventListPage> {
       content: Row(
         children: [
           Icon(
-            Icons.error_outline,  // Customize the icon
+            Icons.error_outline,
             color: Colors.white,
           ),
-          SizedBox(width: 8), // Add some space between the icon and the text
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
@@ -342,16 +360,16 @@ class _EventListPageState extends State<EventListPage> {
                 color: Colors.white,
                 fontSize: 16,
               ),
-              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,  // Set the background color
-      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
-      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
-      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
-      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+      backgroundColor: backgroundColor,
+      duration: Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
     );

@@ -79,17 +79,10 @@ class Event {
     final db = await Databaseclass();
 
     try {
-      // Query the Events table for the row with the given ID
       String query = "SELECT * FROM Events WHERE ID = $id";
-
-      // Execute the query and get the result
       List<Map<String, dynamic>> result = await db.readData(query);
-
-      // If the result is not empty, map the first row to an Event object
       if (result.isNotEmpty) {
         Event event = Event.fromMap(result.first);
-
-        // Fetch the associated gifts for this event
         List<Gift> giftList = await Gift.getGiftList(event.id!);
         event.giftlist=giftList;
 

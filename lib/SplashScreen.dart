@@ -10,8 +10,8 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if the user is authenticated when the app starts
+    User? user = FirebaseAuth.instance.currentUser;
     Future.delayed(Duration(seconds: 2), () async {
-      User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         print("User signed in: ${user.uid}");
         Friend authenticateduser = await Friend.getUserObject(int.tryParse(user.uid.hashCode.toString())!);
@@ -30,7 +30,7 @@ class SplashScreen extends StatelessWidget {
     });
 
     return Scaffold(
-      body: Center(child: CircularProgressIndicator()), // A loading indicator while checking authentication
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

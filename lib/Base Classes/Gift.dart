@@ -64,7 +64,6 @@ class Gift {
     List<Gift> giftlist = [];
     if (result.isEmpty) return giftlist;
 
-    // Step 3: Convert the events data to Event objects
     for (var eventData in result) {
       Gift gift = Gift.fromMap(eventData);
       giftlist.add(gift);
@@ -76,26 +75,25 @@ class Gift {
     final db = await Databaseclass();
 
     try {
-      // Prepare the SQL query to insert a new gift into the Gifts table
       int status = (gift.status=="Available")?0:1;
       String query = """
       INSERT INTO Gifts (Name, Description, Category, Price, Image, Status, EventID)
       VALUES ('${gift.name}', '${gift.description}', '${gift.category}', ${gift.price}, '${gift.image}', ${status}, ${gift.eventId})
     """;
 
-      // Execute the query using insertData (assuming insertData method exists in Databaseclass)
-      int result = await db.insertData(query);  // Returns number of affected rows
+
+      int result = await db.insertData(query);
 
       if (result > 0) {
         print("Gift added successfully!");
-        return true; // Return true if insertion was successful
+        return true;
       } else {
         print("Failed to add gift.");
         return false;
       }
     } catch (e) {
       print("Error adding gift: $e");
-      return false; // Return false if there was an error
+      return false;
     }
   }
 
@@ -136,7 +134,7 @@ class Gift {
       int result = await db.deleteData(query);
       if (result > 0) {
         print("Gift Deleted successfully!");
-        return true; // Return true if insertion was successful
+        return true;
       } else {
         print("Failed to Delete gift.");
         return false;
@@ -149,6 +147,28 @@ class Gift {
 
 
   }
+
+  static Future<Gift?> getGiftById(int id) async {
+    final db = await Databaseclass();
+
+    try {
+      String query = "SELECT * FROM Gifts WHERE ID = $id";
+
+      List<Map<String, dynamic>> result = await db.readData(query);
+
+      if (result.isNotEmpty) {
+        Gift gift = Gift.fromMap(result.first);
+        return gift;
+      } else {
+        print("No gift found with ID $id.");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching gift by ID: $e");
+      return null;
+    }
+  }
+
 
 
 }

@@ -30,27 +30,6 @@ class _HomeState extends State<Home> {
   List<Friend>? filteredfriends;
   final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
 
-  // final List<Friend> friends = [
-  //   Friend(
-  //     image:
-  //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-  //     name: 'Cristiano Ronaldo',
-  //     upev: 3,
-  //   ),
-  //   Friend(
-  //     image:
-  //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-  //     name: 'Leonel Messi',
-  //     upev: 2,
-  //   ),
-  //   Friend(
-  //     image:
-  //     'https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?w=900&t=st=1729004634~exp=1729005234~hmac=cb0fb1a6e2dd8ce69411b07aecac4347fa1bad93feb2cbbe5070ef06955202d8',
-  //     name: 'Mohamed Salah',
-  //     upev: 6,
-  //   ),
-  // ];
-
 
   @override
   void initState() {
@@ -302,10 +281,10 @@ class _HomeState extends State<Home> {
       content: Row(
         children: [
           Icon(
-            Icons.error_outline,  // Customize the icon
+            Icons.error_outline,
             color: Colors.white,
           ),
-          SizedBox(width: 8), // Add some space between the icon and the text
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
@@ -313,16 +292,16 @@ class _HomeState extends State<Home> {
                 color: Colors.white,
                 fontSize: 16,
               ),
-              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-      backgroundColor: backgroundColor,  // Set the background color
-      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
-      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
-      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
-      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
+      backgroundColor: backgroundColor,
+      duration: Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
     );
