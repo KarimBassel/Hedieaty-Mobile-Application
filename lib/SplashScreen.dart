@@ -10,9 +10,10 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if the user is authenticated when the app starts
-    User? user = FirebaseAuth.instance.currentUser;
+
     Future.delayed(Duration(seconds: 2), () async {
-      if (user != null) {
+      User? user = await FirebaseAuth.instance.currentUser;
+      if (user != null && user.uid != null) {
         print("User signed in: ${user.uid}");
         Friend authenticateduser = await Friend.getUserObject(int.tryParse(user.uid.hashCode.toString())!);
         // User is authenticated, navigate to the home page

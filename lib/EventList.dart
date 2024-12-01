@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
@@ -16,6 +18,7 @@ class EventListPage extends StatefulWidget {
 }
 
 class _EventListPageState extends State<EventListPage> {
+  late StreamSubscription<DatabaseEvent> EventsSubscription;
   String _sortCriterion = 'Name';
   List<Event> events=[];
   Databaseclass db = Databaseclass();
@@ -32,14 +35,19 @@ class _EventListPageState extends State<EventListPage> {
   void initState() {
     super.initState();
     final DatabaseReference _eventRef = FirebaseDatabase.instance.ref('Events');
-    _eventRef.orderByChild('UserID').equalTo(widget.isOwner?widget.User.id!:widget.friend!.id).onValue.listen((event)async {
+    EventsSubscription=_eventRef.orderByChild('UserID').equalTo(widget.isOwner?widget.User.id!:widget.friend!.id).onValue.listen((event)async {
       if (event.snapshot.exists) {
         await fetchEventsFromLocalDb();
       }
     });
     _loadEvents();
   }
-
+  @override
+  void dispose() {
+    // Cancel the listener when the widget is disposed
+    EventsSubscription.cancel();
+    super.dispose();
+  }
   // Load the events initially
   void _loadEvents() async {
     List<Event> loadedEvents = await getEvents();

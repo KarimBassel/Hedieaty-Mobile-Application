@@ -182,26 +182,31 @@ class _HomeState extends State<Home> {
             onTap: () async {
 
               Contact? contact = await _contactPicker.selectContact();
-              String ExtractedNumber = contact!.phoneNumbers
-                  .toString()
-                  .replaceAll(RegExp(r'[\[\]]'), '')
-                  .replaceFirst('+2', '');
-              //print(ExtractedNumber);
-              if(widget.User.PhoneNumber==ExtractedNumber)showCustomSnackBar(context,"Cannot Add Yourself");
-              else {
-                dynamic newfriend = await Friend.registerFriend(widget.User.id!, ExtractedNumber);
-                if (newfriend is bool) {
-                  showCustomSnackBar(context, "User Not Found");
-                }
+              if(contact!=null) {
+                String ExtractedNumber = contact!.phoneNumbers
+                    .toString()
+                    .replaceAll(RegExp(r'[\[\]]'), '')
+                    .replaceFirst('+2', '');
+                //print(ExtractedNumber);
+                if (widget.User.PhoneNumber == ExtractedNumber)
+                  showCustomSnackBar(context, "Cannot Add Yourself");
                 else {
-                  Friend updatedUser = await Friend.getUserObject(widget.User.id!);
-                  widget.User = updatedUser!;
-                  filteredfriends = widget.User.friendlist;
+                  dynamic newfriend = await Friend.registerFriend(
+                      widget.User.id!, ExtractedNumber);
+                  if (newfriend is bool) {
+                    showCustomSnackBar(context, "User Not Found");
+                  }
+                  else {
+                    Friend updatedUser = await Friend.getUserObject(
+                        widget.User.id!);
+                    widget.User = updatedUser!;
+                    filteredfriends = widget.User.friendlist;
+                  }
                 }
-              }
-              setState(() {
+                setState(() {
 
-              });
+                });
+              }
             },
           ),
         ],
@@ -258,7 +263,7 @@ class _HomeState extends State<Home> {
             setState(() {
 
             });
-            await db!.syncFriendsTableToFirebase();
+            //await db!.syncFriendsTableToFirebase();
             Navigator.of(context).pop();
           },
           child: Text('Save'),

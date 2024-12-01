@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -24,6 +25,7 @@ class GiftListPage extends StatefulWidget {
 class _GiftListPageState extends State<GiftListPage> {
   final ImagePicker _picker = ImagePicker();
   String _sortCriterion = 'Name';
+  late StreamSubscription<DatabaseEvent> _giftsSubscription;
   Databaseclass db = Databaseclass();
 
   Future<void> fetchGiftsFromLocalDb() async {
@@ -38,11 +40,17 @@ class _GiftListPageState extends State<GiftListPage> {
   void initState() {
 
     final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts');
-    _giftsRef.orderByChild('EventID').equalTo(widget.event.id).onValue.listen((event)async {
+    _giftsSubscription=_giftsRef.orderByChild('EventID').equalTo(widget.event.id).onValue.listen((event)async {
       if (event.snapshot.exists) {
         await fetchGiftsFromLocalDb();
       }
     });
+  }
+  @override
+  void dispose() {
+    // Cancel the listener when the widget is disposed
+    _giftsSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -268,27 +276,26 @@ class _GiftListPageState extends State<GiftListPage> {
                       onTap: () async{
                         if(widget.isOwner){
                           print("okash");
-                          List<Gift> updatedlist = await Navigator.push(
+                          Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
                                 isPledger: false,User: widget.User,))
                           );
                           setState(() {
-                            widget.event.giftlist=updatedlist;
+
                           });
                         }
                         else{
                           print(widget.User!.PhoneNumber);
                           print(gift.PledgerID);
                           print(widget.User.id);
-                          List<Gift> updatedlist = await Navigator.push(
+                          await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
                                 isPledger: (gift.PledgerID==widget.User.id)?true:false,User: widget.User,))
                           );
 
                           setState(() {
-                            widget.event.giftlist=updatedlist;
                           });
                         }
 

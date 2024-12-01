@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
@@ -25,8 +26,10 @@ class GiftDetails extends StatefulWidget {
 }
 
 class _GiftDetailsState extends State<GiftDetails> {
+  late StreamSubscription<DatabaseEvent> _giftsSubscription;
   Databaseclass db = Databaseclass();
   File? _image;
+  bool isloading=false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -35,6 +38,7 @@ class _GiftDetailsState extends State<GiftDetails> {
 
   //real-time sync & updating class attributtes
   Future<void> fetchGiftFromLocalDb() async{
+
     await Future.delayed(const Duration(seconds: 1));
     Gift? g = await Gift.getGiftById(widget.gift.id!);
     widget.gift=g!;
@@ -42,9 +46,6 @@ class _GiftDetailsState extends State<GiftDetails> {
     widget.isPledger = (widget.gift.PledgerID==widget.User!.id);
     _statusController.text = widget.isPledged ? 'Pledged' : 'Available';
 
-    setState(() {
-
-    });
   }
 
   @override
@@ -52,17 +53,25 @@ class _GiftDetailsState extends State<GiftDetails> {
     super.initState();
     //for real-time sync
     final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts/${widget.gift.id}');
-    _giftsRef.onValue.listen((event) async {
+    _giftsSubscription=_giftsRef.onValue.listen((event) async {
       if (event.snapshot.exists) {
         await fetchGiftFromLocalDb();
       }
     });
+
 
     _nameController.text = widget.gift.name;
     _descriptionController.text = widget.gift.description;
     _categoryController.text = widget.gift.category;
     _priceController.text = widget.gift.price.toString();
     _statusController.text = widget.isPledged ? 'Pledged' : 'Available';
+  }
+  @override
+  void dispose() {
+    // Remove the listener when the widget is disposed
+    final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts/${widget.gift.id}');
+    _giftsSubscription.cancel();
+    super.dispose();
   }
 
   Future<void> _pickImage() async {
@@ -107,7 +116,7 @@ class _GiftDetailsState extends State<GiftDetails> {
       appBar: AppBar(
         leading: IconButton(onPressed: ()async{
           List<Gift> updatedlist = await Gift.getGiftList(widget.gift.eventId!);
-          Navigator.pop(context,updatedlist);
+          Navigator.pop(context);
           // Event? e = await Event.getEventById(widget.gift.eventId!);
           // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> GiftListPage(event: e!, isOwner: widget.isOwner, User: widget.User!)));
         }, icon: Icon(Icons.arrow_back)),
@@ -172,7 +181,9 @@ class _GiftDetailsState extends State<GiftDetails> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: ()async{
+                    onPressed: isloading ? null :  ()async{
+                      isloading=true;
+                      setState(() {});
                       _togglePledge();
                       Event? e = await Event.getEventById(widget.gift.eventId!);
                       await db.syncGiftsTableToFirebase();
@@ -184,11 +195,8 @@ class _GiftDetailsState extends State<GiftDetails> {
                         context,
                         MaterialPageRoute(builder: (context) => GiftListPage(event: e!, isOwner: widget.isOwner, User: widget.User!)),
                       );
-                      setState(() {
-
-                      });
                     },
-                    child: Text(
+                    child: isloading?CircularProgressIndicator(color: Colors.white,):Text(
                       widget.gift.status == "Available" ? "Pledge" : "Cancel",
                       style: TextStyle(color: Colors.white),
                     ),

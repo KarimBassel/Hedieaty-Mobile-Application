@@ -269,7 +269,7 @@ class _ProfileState extends State<Profile> {
                 ],
               ),
             ),
-            _buildEditIcon(title, controller),
+            if(title!='Email')_buildEditIcon(title, controller),
           ],
         ),
       ),

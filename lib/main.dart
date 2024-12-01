@@ -19,6 +19,7 @@ import 'Base Classes/Event.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'Base Classes/Database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'Base Classes/Friend.dart';
 void main() async{
   //Firebase init

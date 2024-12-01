@@ -74,9 +74,9 @@ CREATE TABLE Gifts (
 
 db.execute('''
 CREATE TABLE Friends (
+  ID INTEGER PRIMARY KEY AUTOINCREMENT,
   UserID INTEGER NOT NULL,
   FriendID INTEGER NOT NULL,
-  PRIMARY KEY (UserID, FriendID),
   FOREIGN KEY (UserID) REFERENCES Users(ID),
   FOREIGN KEY (FriendID) REFERENCES Users(ID)
 );
@@ -138,7 +138,7 @@ CREATE TABLE Friends (
     print("MyData has been deleted");
   }
 
-// Sync Firebase data into SQLite
+//no longer used
   Future<void> syncFromFirebase() async {
     Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
@@ -257,7 +257,8 @@ CREATE TABLE Friends (
             var friend = value as Map<dynamic, dynamic>;
             db.insert('Friends', {
               'UserID': friend['UserID'],
-              'FriendID': friend['FriendID']
+              'FriendID': friend['FriendID'],
+              'ID' : friend['ID']
             }, conflictAlgorithm: ConflictAlgorithm.replace);
           });
         } else if (friendsData is List) {
@@ -265,7 +266,8 @@ CREATE TABLE Friends (
             if (friend != null) {
               db.insert('Friends', {
                 'UserID': friend['UserID'],
-                'FriendID': friend['FriendID']
+                'FriendID': friend['FriendID'],
+                'ID' : friend['ID']
               }, conflictAlgorithm: ConflictAlgorithm.replace);
             }
           }
@@ -277,29 +279,209 @@ CREATE TABLE Friends (
       print('Error syncing from Firebase: $e');
     }
   }
+  // Sync Firebase data into SQLite
+Future<void> syncUsersFromFirebase()async{
+  Database? db = await MyDataBase;
+  final databaseRef = FirebaseDatabase.instance.ref();
+    try{
 
+      await db!.delete('Users');
+      print('Users table deleted successfully from SQLite tables.');
+
+      DatabaseEvent usersEvent = await databaseRef.child('Users').once();
+      if (usersEvent.snapshot.exists) {
+        Map<dynamic, dynamic> usersMap = usersEvent.snapshot.value as Map<dynamic, dynamic>;
+        usersMap.forEach((key, user) async {
+          if (user != null) {
+            await db.insert('Users', {
+              'ID': user['ID'],
+              'Name': user['Name'],
+              'Email': user['Email'],
+              'Preferences': user['Preferences'],
+              'PhoneNumber': user['PhoneNumber'],
+              'Password': user['Password'],
+              'Image': user['Image'],
+              'Notifications': user['Notifications'] ?? 0,
+              'UpcomingEvents': user['UpcomingEvents'] ?? 0,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        });
+        print('Users synchronized successfully from Firebase to SQLite');
+      }
+    }catch (e) {
+      print('Error syncing from Firebase: $e');
+    }
+
+}
+  Future<void> syncEventsFromFirebase()async{
+    Database? db = await MyDataBase;
+    final databaseRef = FirebaseDatabase.instance.ref();
+    try{
+
+      await db!.delete('Events');
+      print('Events table deleted successfully from SQLite tables.');
+
+      // Fetch Events from Firebase
+      DatabaseEvent eventsEvent = await databaseRef.child('Events').once();
+      if (eventsEvent.snapshot.exists) {
+        var eventsData = eventsEvent.snapshot.value;
+        if (eventsData is Map) {
+          eventsData.forEach((key, value) {
+            var event = value as Map<dynamic, dynamic>;
+            db.insert('Events', {
+              'ID': event['ID'],
+              'Name': event['Name'],
+              'Date': event['Date'],
+              'Location': event['Location'],
+              'Description': event['Description'],
+              'Category': event['Category'],
+              'Status': event['Status'],
+              'UserID': event['UserID'],
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          });
+        } else if (eventsData is List) {
+          for (var event in eventsData) {
+            if (event != null) {
+              db.insert('Events', {
+                'ID': event['ID'],
+                'Name': event['Name'],
+                'Date': event['Date'],
+                'Location': event['Location'],
+                'Description': event['Description'],
+                'Category': event['Category'],
+                'Status': event['Status'],
+                'UserID': event['UserID'],
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
+      }
+      print('Events synchronized successfully from Firebase to SQLite');
+
+    }catch (e) {
+      print('Error syncing from Firebase: $e');
+    }
+
+  }
+
+  Future<void> syncGiftsFromFirebase()async{
+    Database? db = await MyDataBase;
+    final databaseRef = FirebaseDatabase.instance.ref();
+    try{
+
+      await db!.delete('Gifts');
+      print('Gifts table deleted successfully from SQLite tables.');
+
+      // Fetch Gifts from Firebase
+      DatabaseEvent giftsEvent = await databaseRef.child('Gifts').once();
+      if (giftsEvent.snapshot.exists) {
+        var giftsData = giftsEvent.snapshot.value;
+        if (giftsData is Map) {
+          giftsData.forEach((key, value) {
+            var gift = value as Map<dynamic, dynamic>;
+            db.insert('Gifts', {
+              'ID': gift['ID'],
+              'Name': gift['Name'],
+              'Description': gift['Description'],
+              'Category': gift['Category'],
+              'Price': gift['Price'],
+              'Image': gift['Image'],
+              'Status': gift['Status'] ?? 0,
+              'EventID': gift['EventID'],
+              'PledgerID': gift['PledgerID'] ?? -1,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          });
+        } else if (giftsData is List) {
+          for (var gift in giftsData) {
+            if (gift != null) {
+              db.insert('Gifts', {
+                'ID': gift['ID'],
+                'Name': gift['Name'],
+                'Description': gift['Description'],
+                'Category': gift['Category'],
+                'Price': gift['Price'],
+                'Image': gift['Image'],
+                'Status': gift['Status'] ?? 0,
+                'EventID': gift['EventID'],
+                'PledgerID': gift['PledgerID'] ?? -1,
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
+      }
+      print('Gifts synchronized successfully from Firebase to SQLite');
+
+
+    }catch (e) {
+      print('Error syncing from Firebase: $e');
+    }
+
+  }
+
+  Future<void> syncFriendsFromFirebase()async{
+    Database? db = await MyDataBase;
+    final databaseRef = FirebaseDatabase.instance.ref();
+    try{
+
+      await db!.delete('Friends');
+      print('Friends table deleted successfully from SQLite tables.');
+
+      // Fetch Friends from Firebase
+      DatabaseEvent friendsEvent = await databaseRef.child('Friends').once();
+      if (friendsEvent.snapshot.exists) {
+        var friendsData = friendsEvent.snapshot.value;
+        if (friendsData is Map) {
+          friendsData.forEach((key, value) {
+            var friend = value as Map<dynamic, dynamic>;
+            db.insert('Friends', {
+              'UserID': friend['UserID'],
+              'FriendID': friend['FriendID'],
+              'ID' : friend['ID']
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          });
+        } else if (friendsData is List) {
+          for (var friend in friendsData) {
+            if (friend != null) {
+              db.insert('Friends', {
+                'UserID': friend['UserID'],
+                'FriendID': friend['FriendID'],
+                'ID' : friend['ID']
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+          }
+        }
+      }
+
+      print('Friends synchronized successfully from Firebase to SQLite');
+
+
+    }catch (e) {
+      print('Error syncing from Firebase: $e');
+    }
+
+  }
 
   void setupRealtimeListeners() {
     final databaseRef = FirebaseDatabase.instance.ref();
 
     // Listen for changes in Users
     databaseRef.child('Users').onValue.listen((event) {
-      syncFromFirebase(); // Sync your database
+      syncUsersFromFirebase(); // Sync your database
     });
 
     // Listen for changes in Events
     databaseRef.child('Events').onValue.listen((event) {
-      syncFromFirebase();
+      syncEventsFromFirebase();
     });
 
     // Listen for changes in Friends
     databaseRef.child('Friends').onValue.listen((event) {
-      syncFromFirebase();
+      syncFriendsFromFirebase();
     });
 
     // Listen for changes in Gifts
     databaseRef.child('Gifts').onValue.listen((event) {
-      syncFromFirebase();
+      syncGiftsFromFirebase();
     });
 
     // Add listeners for other tables if needed
@@ -377,14 +559,15 @@ CREATE TABLE Friends (
     for (var friend in friends) {
       int userID = friend['UserID'];
       int friendID = friend['FriendID'];
-
+      int ID = friend['ID'];
 
       Map<String, dynamic> friendMap = {
         'UserID': userID,
         'FriendID': friendID,
+        'ID':ID
       };
 
-      DatabaseReference friendRef = firebaseRef.child('Friends').child(userID.toString());
+      DatabaseReference friendRef = firebaseRef.child('Friends').child(ID.toString());
 
       DatabaseEvent firebaseFriend = await friendRef.once();
       if (firebaseFriend.snapshot.exists) {

@@ -33,7 +33,7 @@ class Friend {
   });
 
   factory Friend.fromMap(Map<String, dynamic> map) {
-    print(map["Notifications"]);
+    //print(map["Notifications"]);
     return Friend(
       id: map['ID'],
       name: map['Name'],

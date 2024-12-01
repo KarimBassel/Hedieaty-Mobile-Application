@@ -28,7 +28,7 @@ class Gift {
   });
 
   factory Gift.fromMap(Map<String, dynamic> map) {
-    print(map);
+    //print(map);
 
     return Gift(
       id: map['ID'],
