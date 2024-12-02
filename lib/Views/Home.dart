@@ -3,15 +3,16 @@ import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
-import 'package:hedieatymobileapplication/EventList.dart';
-import 'package:hedieatymobileapplication/Profile.dart';
+import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Views/EventList.dart';
+import 'package:hedieatymobileapplication/Views/Profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'FriendCard.dart';
-import 'Base Classes/Friend.dart';
-import 'Base Classes/Event.dart';
+import '../Models/Friend.dart';
+import '../Models/Event.dart';
 //import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 
 
@@ -28,6 +29,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Databaseclass? db;
   List<Friend>? filteredfriends;
+  final FriendController controller = FriendController();
   final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
 
 
@@ -51,12 +53,13 @@ class _HomeState extends State<Home> {
               tooltip: "My Profile",
               iconSize: 35,
               onPressed: ()async {
-                Friend? uptodate = await Friend.getUserObject(widget.User.id!);
-                widget.User=uptodate!;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Profile(User:widget.User)),
-                );
+                // Friend? uptodate = await Friend.getUserObject(widget.User.id!);
+                // widget.User=uptodate!;
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => Profile(User:widget.User)),
+                // );
+                await controller.ProfileIconTap(widget.User.id!, context);
               },
             ),
             SizedBox(width: 8),
@@ -89,9 +92,10 @@ class _HomeState extends State<Home> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: ()async {
-                widget.User = await Friend.getUserObject(widget.User.id!);
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
+                // widget.User = await Friend.getUserObject(widget.User.id!);
+                // Navigator.push(context, MaterialPageRoute(
+                //     builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
+                await controller.CreateEventOnTap(widget.User.id!, context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orangeAccent,
@@ -145,10 +149,11 @@ class _HomeState extends State<Home> {
                       ],
                     ),
                     onTap: () async{
-                      friend = await Friend.getUserObject(friend.id!);
-                      Navigator.push(context, MaterialPageRoute(
-                          builder: (context) =>
-                              EventListPage(isOwner: false,User: widget.User,friend:friend)));
+                      // friend = await Friend.getUserObject(friend.id!);
+                      // Navigator.push(context, MaterialPageRoute(
+                      //     builder: (context) =>
+                      //         EventListPage(isOwner: false,User: widget.User,friend:friend)));
+                      await controller.FriendCardOnTap(friend.id!, widget.User, context);
                     },
                   ),
                   Divider(),
@@ -180,33 +185,34 @@ class _HomeState extends State<Home> {
             value: 'contacts',
             child: Text('Add Friend from Contacts'),
             onTap: () async {
+                  filteredfriends = await controller.AddFriendFromContacts(_contactPicker, widget.User, context);
+                  setState(() {
 
-              Contact? contact = await _contactPicker.selectContact();
-              if(contact!=null) {
-                String ExtractedNumber = contact!.phoneNumbers
-                    .toString()
-                    .replaceAll(RegExp(r'[\[\]]'), '')
-                    .replaceFirst('+2', '');
-                //print(ExtractedNumber);
-                if (widget.User.PhoneNumber == ExtractedNumber)
-                  showCustomSnackBar(context, "Cannot Add Yourself");
-                else {
-                  dynamic newfriend = await Friend.registerFriend(
-                      widget.User.id!, ExtractedNumber);
-                  if (newfriend is bool) {
-                    showCustomSnackBar(context, "User Not Found");
-                  }
-                  else {
-                    Friend updatedUser = await Friend.getUserObject(
-                        widget.User.id!);
-                    widget.User = updatedUser!;
-                    filteredfriends = widget.User.friendlist;
-                  }
-                }
-                setState(() {
-
-                });
-              }
+                  });
+              // Contact? contact = await _contactPicker.selectContact();
+              // if(contact!=null) {
+              //   String ExtractedNumber = contact!.phoneNumbers
+              //       .toString()
+              //       .replaceAll(RegExp(r'[\[\]]'), '')
+              //       .replaceFirst('+2', '');
+              //   //print(ExtractedNumber);
+              //   if (widget.User.PhoneNumber == ExtractedNumber)
+              //     showCustomSnackBar(context, "Cannot Add Yourself");
+              //   else {
+              //     dynamic newfriend = await Friend.registerFriend(
+              //         widget.User.id!, ExtractedNumber);
+              //     if (newfriend is bool) {
+              //       showCustomSnackBar(context, "User Not Found");
+              //     }
+              //     else {
+              //       Friend updatedUser = await Friend.getUserObject(
+              //           widget.User.id!);
+              //       widget.User = updatedUser!;
+              //       filteredfriends = widget.User.friendlist;
+              //     }
+              //   }
+              //
+              // }
             },
           ),
         ],
@@ -242,24 +248,24 @@ class _HomeState extends State<Home> {
           child: Text('Cancel'),
         ),
         TextButton(
-          onPressed: ()async {
-            print(widget.User.id!);
-            final phone = PhoneController.text;
-            if(widget.User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
-            else{
-              dynamic newfriend = await Friend.registerFriend(widget.User.id!, phone);
-              //returned false from search query of the phone number
-              if(newfriend is bool){
-                showCustomSnackBar(context,"User Not Found");
-              }
-              else{
-                Friend updatedUser = await Friend.getUserObject(widget.User.id!);
-                await db!.syncFriendsTableToFirebase();
-                widget.User=updatedUser!;
-                filteredfriends = widget.User.friendlist;
-              }
-            }
-
+           onPressed: ()async {
+          //   print(widget.User.id!);
+          //   final phone = PhoneController.text;
+          //   if(widget.User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
+          //   else{
+          //     dynamic newfriend = await Friend.registerFriend(widget.User.id!, phone);
+          //     //returned false from search query of the phone number
+          //     if(newfriend is bool){
+          //       showCustomSnackBar(context,"User Not Found");
+          //     }
+          //     else{
+          //       Friend updatedUser = await Friend.getUserObject(widget.User.id!);
+          //       await db!.syncFriendsTableToFirebase();
+          //       widget.User=updatedUser!;
+          //       filteredfriends = widget.User.friendlist;
+          //     }
+          //   }
+             filteredfriends = await controller.AddFriendManual(PhoneController, widget.User, context);
             setState(() {
 
             });
@@ -281,37 +287,6 @@ class _HomeState extends State<Home> {
       filteredfriends = filtered;
     });
   }
-  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
-    final snackBar = SnackBar(
-      content: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.white,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: backgroundColor,
-      duration: Duration(seconds: 3),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-    );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 
 }

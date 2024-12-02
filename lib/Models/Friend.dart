@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Models/Event.dart';
 import 'Gift.dart';
 
 class Friend {

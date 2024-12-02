@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftList.dart';
-import 'Base Classes/Gift.dart';
-import 'Base Classes/Friend.dart';
-import 'Base Classes/Event.dart';
+import '../Models/Gift.dart';
+import '../Models/Friend.dart';
+import '../Models/Event.dart';
 bool flag = false;
 
 class GiftDetails extends StatefulWidget {

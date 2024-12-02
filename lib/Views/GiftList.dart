@@ -4,11 +4,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:image_picker/image_picker.dart';
-import 'Base Classes/Gift.dart';
-import 'Base Classes/Event.dart';
-import 'Base Classes/Friend.dart';
+import '../Models/Gift.dart';
+import '../Models/Event.dart';
+import '../Models/Friend.dart';
 import 'GiftDetails.dart';
 
 class GiftListPage extends StatefulWidget {
@@ -32,7 +32,8 @@ class _GiftListPageState extends State<GiftListPage> {
     await Future.delayed(const Duration(seconds: 1));
     Event? e = await Event.getEventById(widget.event.id!);
     widget.event = e!;
-    setState(() {});
+    if(mounted){
+    setState(() {}); }
   }
 
 

@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'Base Classes/Friend.dart';
+import '../Models/Friend.dart';
 
 class FriendsCard extends StatelessWidget {
   final String imageUrl;

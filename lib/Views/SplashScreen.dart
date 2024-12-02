@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Home.dart';
-import 'package:hedieatymobileapplication/SignIn.dart';
+import 'package:hedieatymobileapplication/Views/Home.dart';
+import 'package:hedieatymobileapplication/Views/SignIn.dart';
 
-import 'Base Classes/Authentication.dart';
-import 'Base Classes/Friend.dart';
+import '../Models/Authentication.dart';
+import '../Models/Friend.dart';
 
 class SplashScreen extends StatelessWidget {
   @override

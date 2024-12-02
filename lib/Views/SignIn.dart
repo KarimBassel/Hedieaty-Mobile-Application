@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
-import 'package:hedieatymobileapplication/Home.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Models/Event.dart';
+import 'package:hedieatymobileapplication/Models/Friend.dart';
+import 'package:hedieatymobileapplication/Views/Home.dart';
 import 'package:image_picker/image_picker.dart';
-import 'Base Classes/Authentication.dart';
+import '../Models/Authentication.dart';
 import 'signup.dart';
 
 class SignIn extends StatefulWidget {

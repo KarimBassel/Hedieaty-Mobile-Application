@@ -1,7 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Event.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Gift.dart';
+import 'package:hedieatymobileapplication/Models/Event.dart';
+import 'package:hedieatymobileapplication/Models/Friend.dart';
+import 'package:hedieatymobileapplication/Models/Gift.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -279,7 +279,7 @@ CREATE TABLE Friends (
       print('Error syncing from Firebase: $e');
     }
   }
-  // Sync Firebase data into SQLite
+//no longer used
 Future<void> syncUsersFromFirebase()async{
   Database? db = await MyDataBase;
   final databaseRef = FirebaseDatabase.instance.ref();
@@ -313,6 +313,7 @@ Future<void> syncUsersFromFirebase()async{
     }
 
 }
+//no longer used
   Future<void> syncEventsFromFirebase()async{
     Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
@@ -337,6 +338,8 @@ Future<void> syncUsersFromFirebase()async{
               'Category': event['Category'],
               'Status': event['Status'],
               'UserID': event['UserID'],
+              'IsNew' : 1,
+              'IsUpdated':0,
             }, conflictAlgorithm: ConflictAlgorithm.replace);
           });
         } else if (eventsData is List) {
@@ -363,7 +366,7 @@ Future<void> syncUsersFromFirebase()async{
     }
 
   }
-
+//no longer used
   Future<void> syncGiftsFromFirebase()async{
     Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
@@ -417,7 +420,7 @@ Future<void> syncUsersFromFirebase()async{
     }
 
   }
-
+//no longer used
   Future<void> syncFriendsFromFirebase()async{
     Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
@@ -461,30 +464,208 @@ Future<void> syncUsersFromFirebase()async{
 
   }
 
-  void setupRealtimeListeners() {
+
+
+  void setupRealtimeListeners()async {
+    Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
 
     // Listen for changes in Users
-    databaseRef.child('Users').onValue.listen((event) {
-      syncUsersFromFirebase(); // Sync your database
+    databaseRef.child('Users').onChildAdded.listen((event) {
+      //syncUsersFromFirebase(); // Sync your database
+      var usersMap = event.snapshot.value;
+      if(usersMap is Map) {
+             db!.insert('Users', {
+          'ID': usersMap['ID'],
+          'Name': usersMap['Name'],
+          'Email': usersMap['Email'],
+          'Preferences': usersMap['Preferences'],
+          'PhoneNumber': usersMap['PhoneNumber'],
+          'Password': usersMap['Password'],
+          'Image': usersMap['Image'],
+          'Notifications': usersMap['Notifications'] ?? 0,
+          'UpcomingEvents': usersMap['UpcomingEvents'] ?? 0,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          print("User Updated from firebase and local");
+      }
+    });
+    databaseRef.child('Users').onChildChanged.listen((event) {
+      //syncUsersFromFirebase(); // Sync your database
+      var usersMap = event.snapshot.value;
+      if(usersMap is Map) {
+             db!.insert('Users', {
+              'ID': usersMap['ID'],
+              'Name': usersMap['Name'],
+              'Email': usersMap['Email'],
+              'Preferences': usersMap['Preferences'],
+              'PhoneNumber': usersMap['PhoneNumber'],
+              'Password': usersMap['Password'],
+              'Image': usersMap['Image'],
+              'Notifications': usersMap['Notifications'] ?? 0,
+              'UpcomingEvents': usersMap['UpcomingEvents'] ?? 0,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("User Updated from firebase and local");
+      }
+    });
+    databaseRef.child('Users').onChildRemoved.listen((event) {
+      //syncUsersFromFirebase(); // Sync your database
+      var userdata = event.snapshot.value;
+      if(userdata is Map && userdata.containsKey('ID')){
+        int userid = userdata['ID'];
+        db!.delete(
+          'Users',
+          where: 'ID = ?',
+          whereArgs: [userid],
+        );
+        print("User Deleted from firebase and local");
+      }
     });
 
     // Listen for changes in Events
-    databaseRef.child('Events').onValue.listen((event) {
-      syncEventsFromFirebase();
+    databaseRef.child('Events').onChildAdded.listen((event) {
+      var eventsData = event.snapshot.value;
+       if (eventsData is Map) {
+           db!.insert('Events', {
+             'ID': eventsData['ID'],
+             'Name': eventsData['Name'],
+             'Date': eventsData['Date'],
+             'Location': eventsData['Location'],
+             'Description': eventsData['Description'],
+             'Category': eventsData['Category'],
+             'Status': eventsData['Status'],
+             'UserID': eventsData['UserID']
+           }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+       }
+       print("New Event Added from firebase to local");
+
+    });
+    databaseRef.child('Events').onChildChanged.listen((event) {
+      var eventsData = event.snapshot.value;
+      if (eventsData is Map) {
+        db!.insert('Events', {
+          'ID': eventsData['ID'],
+          'Name': eventsData['Name'],
+          'Date': eventsData['Date'],
+          'Location': eventsData['Location'],
+          'Description': eventsData['Description'],
+          'Category': eventsData['Category'],
+          'Status': eventsData['Status'],
+          'UserID': eventsData['UserID']
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+      }
+      print("Event Updated from firebase to local");
+
+    });
+    databaseRef.child('Events').onChildRemoved.listen((event) {
+      var eventsData = event.snapshot.value;
+      print(eventsData);
+      print(eventsData.runtimeType);
+      if (eventsData is Map && eventsData.containsKey('ID')) {
+        int eventId = eventsData['ID'];
+        db!.delete(
+          'Events',
+          where: 'ID = ?',
+          whereArgs: [eventId],
+        );
+        print("Event Deleted from firebase and local");
+      }
     });
 
     // Listen for changes in Friends
-    databaseRef.child('Friends').onValue.listen((event) {
-      syncFriendsFromFirebase();
+    databaseRef.child('Friends').onChildAdded.listen((event) {
+      //syncFriendsFromFirebase();
+      var friendsData = event.snapshot.value;
+      if (friendsData is Map) {
+          db!.insert('Friends', {
+            'UserID': friendsData['UserID'],
+            'FriendID': friendsData['FriendID'],
+            'ID' : friendsData['ID']
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+          print("New Friendship synced from firebase to local");
+      }
+
+    });
+    databaseRef.child('Friends').onChildChanged.listen((event) {
+      //syncFriendsFromFirebase();
+      var friendsData = event.snapshot.value;
+      if (friendsData is Map) {
+        db!.insert('Friends', {
+          'UserID': friendsData['UserID'],
+          'FriendID': friendsData['FriendID'],
+          'ID' : friendsData['ID']
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+        print("Friendship Updated from firebase to local");
+      }
+    });
+    databaseRef.child('Friends').onChildRemoved.listen((event) {
+      //syncFriendsFromFirebase();
+      var friendsdata = event.snapshot.value;
+      if(friendsdata is Map && friendsdata.containsKey('ID')){
+        int friendshipid = friendsdata['ID'];
+        db!.delete(
+          'Friends',
+          where: 'ID = ?',
+          whereArgs: [friendshipid],
+        );
+        print("Friendship Deleted from firebase to local");
+      }
     });
 
     // Listen for changes in Gifts
-    databaseRef.child('Gifts').onValue.listen((event) {
-      syncGiftsFromFirebase();
+    databaseRef.child('Gifts').onChildAdded.listen((event) {
+      //syncGiftsFromFirebase();
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map) {
+          db!.insert('Gifts', {
+            'ID': giftsData['ID'],
+            'Name': giftsData['Name'],
+            'Description': giftsData['Description'],
+            'Category': giftsData['Category'],
+            'Price': giftsData['Price'],
+            'Image': giftsData['Image'],
+            'Status': giftsData['Status'] ?? 0,
+            'EventID': giftsData['EventID'],
+            'PledgerID': giftsData['PledgerID'] ?? -1,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          print("Gift Added from firebase to local");
+      }
+    });
+    databaseRef.child('Gifts').onChildChanged.listen((event) {
+      //syncGiftsFromFirebase();
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map) {
+        db!.insert('Gifts', {
+          'ID': giftsData['ID'],
+          'Name': giftsData['Name'],
+          'Description': giftsData['Description'],
+          'Category': giftsData['Category'],
+          'Price': giftsData['Price'],
+          'Image': giftsData['Image'],
+          'Status': giftsData['Status'] ?? 0,
+          'EventID': giftsData['EventID'],
+          'PledgerID': giftsData['PledgerID'] ?? -1,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Gift Updated from firebase to local");
+      }
+    });
+    databaseRef.child('Gifts').onChildRemoved.listen((event) {
+      //syncGiftsFromFirebase();
+      var giftdata = event.snapshot.value;
+      if(giftdata is Map && giftdata.containsKey('ID')){
+        int giftid = giftdata['ID'];
+        db!.delete(
+          'Gifts',
+          where: 'ID = ?',
+          whereArgs: [giftid],
+        );
+        print("Gift Deleted from firebase to local");
+      }
     });
 
-    // Add listeners for other tables if needed
   }
 
 
@@ -525,6 +706,7 @@ Future<void> syncUsersFromFirebase()async{
       }
     }
   }
+
   Future<void> syncEventsDeletionToFirebase(int eventId) async{
     await FirebaseDatabase.instance.ref('Events/$eventId').remove();
   }

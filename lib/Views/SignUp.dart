@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Authentication.dart';
+import 'package:hedieatymobileapplication/Models/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
 import 'SignIn.dart';
-import 'Base Classes/Friend.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import '../Models/Friend.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
 
 class Signup extends StatefulWidget {
   @override

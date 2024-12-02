@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Gift.dart';
+import 'package:hedieatymobileapplication/Models/Gift.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'PledgedGiftCard.dart';

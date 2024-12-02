@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Friend.dart';
-import 'package:hedieatymobileapplication/GiftList.dart';
-import 'Base Classes/Event.dart';
+import 'package:hedieatymobileapplication/Controllers/EventController.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Models/Friend.dart';
+import 'package:hedieatymobileapplication/Views/GiftList.dart';
+import '../Models/Event.dart';
 
 class EventListPage extends StatefulWidget {
   final bool isOwner;
@@ -18,6 +19,7 @@ class EventListPage extends StatefulWidget {
 }
 
 class _EventListPageState extends State<EventListPage> {
+  final EventController controller=EventController();
   late StreamSubscription<DatabaseEvent> EventsSubscription;
   String _sortCriterion = 'Name';
   List<Event> events=[];
@@ -63,7 +65,6 @@ class _EventListPageState extends State<EventListPage> {
       return await Friend.getEvents(widget.friend!.id);
     }
   }
-
   void _sortEvents() {
     events.sort((a, b) {
       switch (_sortCriterion) {
@@ -133,7 +134,7 @@ class _EventListPageState extends State<EventListPage> {
                     icon: Icon(Icons.edit),
                     onPressed: () async{
                       _editEvent(event);
-                      await db.syncEventsTableToFirebase();
+                      await controller.SyncEventstoFirebase();
                     },
                   ),
                 if (widget.isOwner)
@@ -141,24 +142,13 @@ class _EventListPageState extends State<EventListPage> {
                     icon: Icon(Icons.delete),
                     onPressed: () async{
                       _deleteEvent(event);
-                      await db.syncEventsDeletionToFirebase(event.id!);
+                      await controller.SyncDeletiontoFirebase(event.id!);
                     },
                   ),
               ],
             ),
             onTap: () async{
-              Event? e = await Event.getEventById(event.id!);
-              event = e!;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GiftListPage(
-                    event: event,
-                    isOwner: widget.isOwner,
-                    User: widget.User,
-                  ),
-                ),
-              );
+              await controller.GoToGiftList(event.id!, widget.isOwner, widget.User, context);
             },
           );
         },
@@ -208,12 +198,7 @@ class _EventListPageState extends State<EventListPage> {
                     SizedBox(height: 16),
                     GestureDetector(
                       onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDate ?? DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
+                        DateTime? pickedDate = await controller.PickEventDate(event, context);
                         if (pickedDate != null) {
                           setState(() {
                             selectedDate = pickedDate;
@@ -279,48 +264,9 @@ class _EventListPageState extends State<EventListPage> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    final name = nameController.text;
-                    final category = categoryController.text;
-                    final location = locationController.text;
-                    final description = descriptionController.text;
-
-                    if (selectedDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Please select a date')),
-                      );
-                      return;
-                    }
-
-                    final DateTime today = DateTime.now();
-                    final String status = selectedDate!.isBefore(today)
-                        ? 'Completed'
-                        : 'Upcoming';
-
-                    if (event == null) {
-                      // Add new event
-                      await Event.insertEvent(Event(
-                        name: name,
-                        category: category,
-                        status: status,
-                        date: selectedDate,
-                        location: location,
-                        description: description,
-                        userId: widget.User.id,
-                      ));
-                      showCustomSnackBar(context, "Event Added Successfully", backgroundColor: Colors.green);
-                    } else {
-                      // Update existing event
-                      event.name = name;
-                      event.category = category;
-                      event.status = status;
-                      event.date = selectedDate;
-                      event.location = location;
-                      event.description = description;
-                      bool? updateStatus = await Event.updateEvent(event);
-                      showCustomSnackBar(context, "Event Updated Successfully", backgroundColor: Colors.green);
-                    }
-                    await db.syncEventsTableToFirebase();
-                    Navigator.of(context).pop();
+                    await controller.SaveEvent(nameController.text, categoryController.text
+                        , locationController.text, descriptionController.text
+                        , selectedDate, context, event, widget.User.id!);
                     _loadEvents();
                   },
                   child: Text('Save'),
@@ -342,7 +288,7 @@ class _EventListPageState extends State<EventListPage> {
   }
 
   Future<void> _deleteEvent(Event event) async {
-    bool? success = await Event.deleteEvent(event.id!);
+    bool? success = await controller.deleteEvent(event);
     if (success ?? false) {
       showCustomSnackBar(context, "Event Deleted Successfully", backgroundColor: Colors.red);
       setState(() {

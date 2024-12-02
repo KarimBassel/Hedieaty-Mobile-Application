@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Authentication.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Gift.dart';
-import 'package:hedieatymobileapplication/EventList.dart';
-import 'package:hedieatymobileapplication/MyPledgedGifts.dart';
-import 'package:hedieatymobileapplication/SignIn.dart';
+import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
+import 'package:hedieatymobileapplication/Models/Authentication.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Models/Gift.dart';
+import 'package:hedieatymobileapplication/Views/EventList.dart';
+import 'package:hedieatymobileapplication/Views/MyPledgedGifts.dart';
+import 'package:hedieatymobileapplication/Views/SignIn.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'Base Classes/Friend.dart';
+import '../Models/Friend.dart';
 
 class Profile extends StatefulWidget {
   Friend User;
@@ -20,6 +21,7 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  FriendController controller= FriendController();
   File? _image;
   bool switchstate=false;
   AuthService auth = AuthService();
@@ -29,26 +31,31 @@ class _ProfileState extends State<Profile> {
   TextEditingController _preferencesController = TextEditingController(text: "Electronics, Sports");
 
 
-
-  Future<void> _pickImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedImage != null) {
-      final imagebytes = await File(pickedImage.path).readAsBytes();
-      String encodedim = base64Encode(imagebytes);
-
-      bool update = await Friend.updateUser(widget.User.id!,"Image",encodedim);
-      Friend? updateduser = await Friend.getUserById(widget.User.id!);
-      widget.User=updateduser!;
-      db.syncUsersTableToFirebase();
-      setState(() {
-        _image = File(pickedImage.path);
-
-
-      });
-    }
-  }
+  @override
+  void initState() {
+    _nameController.text = widget.User.name;
+    _emailController.text = widget.User.email!;
+    _preferencesController.text = widget.User.preferences!;
+  } //
+  // Future<void> _pickImage() async {
+  //   final ImagePicker _picker = ImagePicker();
+  //   final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
+  //
+  //   if (pickedImage != null) {
+  //     final imagebytes = await File(pickedImage.path).readAsBytes();
+  //     String encodedim = base64Encode(imagebytes);
+  //
+  //     bool update = await Friend.updateUser(widget.User.id!,"Image",encodedim);
+  //     Friend? updateduser = await Friend.getUserById(widget.User.id!);
+  //     widget.User=updateduser!;
+  //     db.syncUsersTableToFirebase();
+  //     setState(() {
+  //       _image = File(pickedImage.path);
+  //
+  //
+  //     });
+  //   }
+  // }
 
   Widget _buildEditIcon(String label, TextEditingController controller) {
     return IconButton(
@@ -59,33 +66,40 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  void _editField(String field, TextEditingController controller) {
+  void _editField(String field, TextEditingController Tcontroller) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Edit $field'),
           content: TextField(
-            controller: controller,
+            controller: Tcontroller,
             decoration: InputDecoration(hintText: "Enter $field"),
           ),
           actions: [
             TextButton(
               child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed:(){
+                controller.PopEditCard(context);
+        },
             ),
             TextButton(
               child: Text('Save'),
               onPressed: () async{
-                bool update = await Friend.updateUser(widget.User.id!,field,controller.text);
-                Friend? updateduser = await Friend.getUserById(widget.User.id!);
-                widget.User=updateduser!;
-
-                db.syncUsersTableToFirebase();
-                setState(() {});
-                Navigator.of(context).pop();
+                // bool update = await Friend.updateUser(widget.User.id!,field,controller.text);
+                // Friend? updateduser = await Friend.getUserById(widget.User.id!);
+                // widget.User=updateduser!;
+                //
+                // db.syncUsersTableToFirebase();
+                // setState(() {});
+                // Navigator.of(context).pop();
+                widget.User=await controller.EditProfileFieldOnSave(widget.User.id!, field, Tcontroller, context);
+                await controller.PopEditCard(context);
+                setState(() {
+                  _nameController.text = widget.User.name;
+                  _emailController.text = widget.User.email!;
+                  _preferencesController.text = widget.User.preferences!;
+                });
               },
             ),
           ],
@@ -96,9 +110,9 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
-    _nameController.text = widget.User.name;
-    _emailController.text = widget.User.email!;
-    _preferencesController.text = widget.User.preferences!;
+    // _nameController.text = widget.User.name;
+    // _emailController.text = widget.User.email!;
+    // _preferencesController.text = widget.User.preferences!;
     switchstate = (widget.User.notifications==0)?false:true;
     return Scaffold(
       appBar: AppBar(
@@ -123,7 +137,12 @@ class _ProfileState extends State<Profile> {
           ),
           IconButton(
             icon: Icon(Icons.camera_alt),
-            onPressed: _pickImage,
+            onPressed: ()async{
+              widget.User=await controller.pickImage(widget.User, context);
+              setState(() {
+
+              });
+          },
             iconSize: 30,
           ),
           SizedBox(height: 10),
@@ -171,12 +190,12 @@ class _ProfileState extends State<Profile> {
                   Switch(
                     value: switchstate,
                     onChanged: (value) async{
-                      bool update = await Friend.updateUser(widget.User.id!,"Notifications",(value==false)?0:1);
-                      Friend? updateduser = await Friend.getUserObject(widget.User.id!);
-                      widget.User=updateduser!;
-
-                      db.syncUsersTableToFirebase();
-
+                      // bool update = await Friend.updateUser(widget.User.id!,"Notifications",(value==false)?0:1);
+                      // Friend? updateduser = await Friend.getUserObject(widget.User.id!);
+                      // widget.User=updateduser!;
+                      //
+                      // db.syncUsersTableToFirebase();
+                      widget.User = await controller.NotificationSwitch(widget.User, value, context);
                       setState(() {
                         switchstate = value;
                       });
@@ -192,26 +211,29 @@ class _ProfileState extends State<Profile> {
           SizedBox(height: 20),
 
           _buildNavigationButton("Go to Events List", ()async {
-            Friend? updateduser = await Friend.getUserObject(widget.User.id!);
-            widget.User=updateduser!;
-            Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
+            // Friend? updateduser = await Friend.getUserObject(widget.User.id!);
+            // widget.User=updateduser!;
+            // Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
+            widget.User = await controller.GoToEventsListFromProfile(widget.User.id!, context);
           }),
 
           SizedBox(height: 20),
 
 
           _buildNavigationButton("My Pledged Gifts", () async{
-            List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(widget.User.id!);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
+            // List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(widget.User.id!);
+            // Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
+            await controller.GoToMyPledgedGifts(widget.User.id!, context);
           }),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: (){
-              auth.signOut();
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => SignIn()),
-                    (Route<dynamic> route) => false,
-              );
+            onPressed: ()async{
+              // auth.signOut();
+              // Navigator.of(context).pushAndRemoveUntil(
+              //   MaterialPageRoute(builder: (context) => SignIn()),
+              //       (Route<dynamic> route) => false,
+              // );
+              await controller.SignOut(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[400],

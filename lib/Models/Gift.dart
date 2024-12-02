@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Base%20Classes/Database.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
 
 class Gift {
   int? id;
