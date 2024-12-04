@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Controllers/GiftController.dart';
 import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -10,6 +11,7 @@ import 'GiftList.dart';
 import '../Models/Gift.dart';
 import '../Models/Friend.dart';
 import '../Models/Event.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 bool flag = false;
 
 class GiftDetails extends StatefulWidget {
@@ -26,10 +28,13 @@ class GiftDetails extends StatefulWidget {
 }
 
 class _GiftDetailsState extends State<GiftDetails> {
+  final GiftController controller = GiftController();
   late StreamSubscription<DatabaseEvent> _giftsSubscription;
-  Databaseclass db = Databaseclass();
+  late StreamSubscription<List<ConnectivityResult>> subscription ;
   File? _image;
   bool isloading=false;
+  bool isOnline=false;
+  bool onflag=false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
@@ -40,7 +45,7 @@ class _GiftDetailsState extends State<GiftDetails> {
   Future<void> fetchGiftFromLocalDb() async{
 
     await Future.delayed(const Duration(seconds: 1));
-    Gift? g = await Gift.getGiftById(widget.gift.id!);
+    Gift? g = await controller.FetchGiftByID(widget.gift.id!);
     widget.gift=g!;
     widget.isPledged = (widget.gift.status=="Available")?false:true;
     widget.isPledger = (widget.gift.PledgerID==widget.User!.id);
@@ -48,9 +53,29 @@ class _GiftDetailsState extends State<GiftDetails> {
 
   }
 
+
   @override
   void initState() {
     super.initState();
+    subscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> result) {
+      // Received changes in available connectivity types!
+      if (result.contains(ConnectivityResult.mobile) || result.contains(ConnectivityResult.wifi)) {
+        isOnline=true;
+        if(onflag)controller.showCustomSnackBar(context, "Connection Restored!",backgroundColor: Colors.green);
+        if(mounted)setState(() {
+
+        });
+      }
+      else{
+        isOnline=false;
+        if(onflag)controller.showCustomSnackBar(context, "Connection Lost!");
+        if(mounted)setState(() {
+
+        });
+      }
+      onflag=true;
+    });
+
     //for real-time sync
     final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts/${widget.gift.id}');
     _giftsSubscription=_giftsRef.onValue.listen((event) async {
@@ -69,24 +94,9 @@ class _GiftDetailsState extends State<GiftDetails> {
   @override
   void dispose() {
     // Remove the listener when the widget is disposed
-    final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts/${widget.gift.id}');
     _giftsSubscription.cancel();
+    subscription.cancel();
     super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedImage != null) {
-      final imageBytes = await File(pickedImage.path).readAsBytes();
-      String encodedImage = base64Encode(imageBytes);
-      widget.gift.image=encodedImage;
-      bool updatestatus = await Gift.updateGift(widget.gift);
-      setState(() {
-
-      });
-    }
   }
 
   void _togglePledge() async{
@@ -96,7 +106,7 @@ class _GiftDetailsState extends State<GiftDetails> {
       widget.isPledged = true;
       widget.isPledger=true;
       widget.gift.PledgerID = widget.User!.id;
-      bool updatestatus = await Gift.updateGift(widget.gift);
+      bool updatestatus = await controller.UpdateGift(widget.gift);
 
     } else {
       widget.gift.status = "Available";
@@ -104,7 +114,7 @@ class _GiftDetailsState extends State<GiftDetails> {
       widget.isPledged = false;
       widget.isPledger=false;
       widget.gift.PledgerID = -1;
-      bool updatestatus = await Gift.updateGift(widget.gift);
+      bool updatestatus = await controller.UpdateGift(widget.gift);
     }
   }
 
@@ -115,7 +125,7 @@ class _GiftDetailsState extends State<GiftDetails> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(onPressed: ()async{
-          List<Gift> updatedlist = await Gift.getGiftList(widget.gift.eventId!);
+          List<Gift> updatedlist = await controller.BackToGiftList(widget.gift.eventId!);
           Navigator.pop(context);
           // Event? e = await Event.getEventById(widget.gift.eventId!);
           // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> GiftListPage(event: e!, isOwner: widget.isOwner, User: widget.User!)));
@@ -145,12 +155,7 @@ class _GiftDetailsState extends State<GiftDetails> {
               ),
             ),
           ),
-          // if (widget.isOwner && !widget.isPledged)
-          //   IconButton(
-          //     icon: Icon(Icons.camera_alt),
-          //     onPressed: _pickImage,
-          //     iconSize: 30,
-          //   ),
+
           SizedBox(height: 10),
           Center(
             child: Text(
@@ -182,19 +187,26 @@ class _GiftDetailsState extends State<GiftDetails> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: isloading ? null :  ()async{
-                      isloading=true;
-                      setState(() {});
-                      _togglePledge();
-                      Event? e = await Event.getEventById(widget.gift.eventId!);
-                      await db.syncGiftsTableToFirebase();
-                      Navigator.of(context)
-                        ..pop()
-                        ..pop();
+                      if(isOnline) {
+                        isloading = true;
+                        setState(() {});
+                        _togglePledge();
+                        Event? e = await controller.PledgedButtonPressed(widget
+                            .gift.eventId!, context);
+                        Navigator.of(context)
+                          ..pop()..pop();
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => GiftListPage(event: e!, isOwner: widget.isOwner, User: widget.User!)),
-                      );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) =>
+                              GiftListPage(event: e!,
+                                  isOwner: widget.isOwner,
+                                  User: widget.User!)),
+                        );
+                      }
+                      else{
+                        controller.showCustomSnackBar(context, "No Internet Connection!");
+                      }
                     },
                     child: isloading?CircularProgressIndicator(color: Colors.white,):Text(
                       widget.gift.status == "Available" ? "Pledge" : "Cancel",

@@ -4,12 +4,17 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:image_picker/image_picker.dart';
+import '../Controllers/GiftController.dart';
 import '../Models/Gift.dart';
+
 import '../Models/Event.dart';
 import '../Models/Friend.dart';
 import 'GiftDetails.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class GiftListPage extends StatefulWidget {
   Event event;
@@ -23,14 +28,16 @@ class GiftListPage extends StatefulWidget {
 }
 
 class _GiftListPageState extends State<GiftListPage> {
+  final GiftController controller = GiftController();
   final ImagePicker _picker = ImagePicker();
+  String _scanBarcode = 'Unknown';
   String _sortCriterion = 'Name';
+  String result='';
   late StreamSubscription<DatabaseEvent> _giftsSubscription;
-  Databaseclass db = Databaseclass();
 
   Future<void> fetchGiftsFromLocalDb() async {
     await Future.delayed(const Duration(seconds: 1));
-    Event? e = await Event.getEventById(widget.event.id!);
+    Event? e = await controller.fetchGiftsFromLocalDb(widget.event.id!);
     widget.event = e!;
     if(mounted){
     setState(() {}); }
@@ -38,7 +45,7 @@ class _GiftListPageState extends State<GiftListPage> {
 
 
   @override
-  void initState() {
+  void initState(){
 
     final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts');
     _giftsSubscription=_giftsRef.orderByChild('EventID').equalTo(widget.event.id).onValue.listen((event)async {
@@ -46,6 +53,7 @@ class _GiftListPageState extends State<GiftListPage> {
         await fetchGiftsFromLocalDb();
       }
     });
+    //await controller.InitiateGiftsFirebaseListener(context);
   }
   @override
   void dispose() {
@@ -61,6 +69,19 @@ class _GiftListPageState extends State<GiftListPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Gifts for ${widget.event.name}'),
+        actions: [
+          if(widget.isOwner)
+          IconButton(onPressed: ()async{
+            dynamic ress = await controller.ScanBarcode(context,widget.event.id!);
+            if(ress is List<Gift>)widget.event.giftlist=ress;
+            //print(res);
+            if(mounted)
+              setState(() {
+
+              });
+          }, icon: Icon(Icons.barcode_reader),tooltip: "Barcode Reader",)
+
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -137,6 +158,7 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.edit),
                                 onPressed: () async{
                                   _editGift(gift);
+                                  if(mounted)
                                   setState(() {
 
                                   });
@@ -147,6 +169,7 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.delete),
                                 onPressed: ()async {
                                   _deleteGift(gift);
+                                  if(mounted)
                                   setState(() {
 
                                   });
@@ -155,32 +178,11 @@ class _GiftListPageState extends State<GiftListPage> {
                         ],
                       ),
                       onTap: () async{
-                        if(widget.isOwner){
-                          print("okash");
-                          List<Gift> updatedlist = await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                                isPledger: false,User: widget.User,))
-                          );
-                          setState(() {
-                            widget.event.giftlist=updatedlist;
-                          });
-                        }
-                        else{
-                          print(widget.User!.PhoneNumber);
-                          print(gift.PledgerID);
-                          print(widget.User.id);
-                          List<Gift> updatedlist = await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                                isPledger: (gift.PledgerID==widget.User.id)?true:false,User: widget.User,))
-                          );
+                        widget.event=await controller.OnGiftCardTap(widget.isOwner, context, gift, gift.status, widget.User, widget.event.id!);
+                        if(mounted)
+                        setState(() {
 
-                          setState(() {
-                            widget.event.giftlist=updatedlist;
-                          });
-                        }
-
+                        });
                       },
                     ),
                   );
@@ -257,6 +259,7 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.edit),
                                 onPressed: ()async {
                                   _editGift(gift);
+                                  if(mounted)
                                   setState(() {
 
                                   });
@@ -267,6 +270,7 @@ class _GiftListPageState extends State<GiftListPage> {
                                 icon: Icon(Icons.delete),
                                 onPressed: () async{
                                   _deleteGift(gift);
+                                  if(mounted)
                                   setState(() {
 
                                   });
@@ -275,30 +279,12 @@ class _GiftListPageState extends State<GiftListPage> {
                         ],
                       ),
                       onTap: () async{
-                        if(widget.isOwner){
-                          print("okash");
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                                isPledger: false,User: widget.User,))
-                          );
+                          widget.event=await controller.OnGiftCardTap(widget.isOwner, context, gift, gift.status, widget.User, widget.event.id!);
+                          if(mounted)
                           setState(() {
 
                           });
-                        }
-                        else{
-                          print(widget.User!.PhoneNumber);
-                          print(gift.PledgerID);
-                          print(widget.User.id);
-                          await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: widget.isOwner, isPledged: gift.status == "Pledged" ? true : false,
-                                isPledger: (gift.PledgerID==widget.User.id)?true:false,User: widget.User,))
-                          );
 
-                          setState(() {
-                          });
-                        }
 
                       },
                     ),
@@ -311,17 +297,20 @@ class _GiftListPageState extends State<GiftListPage> {
       ),
       floatingActionButton: !widget.isOwner
           ? null
-          : FloatingActionButton(
-        onPressed: ()async{
-          _addGift();
-          await db.syncGiftsTableToFirebase();
-          setState(() {
+          :
+              FloatingActionButton(
+                      onPressed: ()async{
+              _addGift();
+              await controller.syncGiftsTableToFirebase();
+              if(mounted)
+              setState(() {
 
-          });
-        } ,
-        backgroundColor: Colors.orangeAccent,
-        child: Icon(Icons.add, color: Colors.white),
-      ),
+              });
+                      } ,
+                      backgroundColor: Colors.orangeAccent,
+                      child: Icon(Icons.add, color: Colors.white),
+                    ),
+
     );
   }
 
@@ -410,53 +399,7 @@ class _GiftListPageState extends State<GiftListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                // Check if an image is selected and encode it
-                if (imageFile != null) {
-                  final imageBytes = await File(imageFile!.path).readAsBytes();
-                  encodedImage = base64Encode(imageBytes);
-                }
-
-                if (gift == null) {
-                  // Adding a new gift
-                  widget.event.giftlist!.add(Gift(
-                    name: nameController.text,
-                    category: categoryController.text,
-                    status: status,
-                    description: descriptionController.text,
-                    price: int.tryParse(priceController.text) ?? 0,
-                    image: encodedImage ?? '',
-                    eventId: widget.event.id,
-                  ));
-
-                  bool addGift = await Gift.addGift(Gift(
-                    name: nameController.text,
-                    category: categoryController.text,
-                    status: status,
-                    description: descriptionController.text,
-                    price: int.tryParse(priceController.text) ?? 0,
-                    image: encodedImage ?? '',
-                    eventId: widget.event.id,
-                  ));
-
-
-                  showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
-                } else {
-                  // Editing an existing gift
-                  gift.name = nameController.text;
-                  gift.category = categoryController.text;
-                  gift.status = status;
-                  gift.description = descriptionController.text;
-                  gift.price = int.tryParse(priceController.text) ?? gift.price;
-                  gift.image = encodedImage ?? gift.image;
-
-                  bool updateStatus = await Gift.updateGift(gift);
-
-
-                  showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
-                }
-                widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
-                await db.syncGiftsTableToFirebase();
-
+                widget.event=await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context);
                 setState(() {
 
                 });
@@ -479,8 +422,8 @@ class _GiftListPageState extends State<GiftListPage> {
   void _editGift(Gift gift) => _showGiftDialog(gift: gift);
 
   void _deleteGift(Gift gift) async{
-    bool delgift = await Gift.DeleteGift(gift.id!);
-    widget.event.giftlist = await Gift.getGiftList(widget.event.id!);
+    widget.event.giftlist = await controller.DeleteGift(gift, widget.event.id!);
+    if(mounted)
     setState(() {
 
     });

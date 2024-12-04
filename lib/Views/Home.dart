@@ -18,6 +18,7 @@ import '../Models/Event.dart';
 
 class Home extends StatefulWidget {
   Friend User;
+
   Home({required this.User});
 
   @override

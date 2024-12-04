@@ -168,7 +168,23 @@ class Gift {
       return null;
     }
   }
+  static Future<Gift> CreateGiftByBarcode(String Barcode,int eventid)async{
+    final db = await Databaseclass();
 
+    String query = "SELECT * FROM BarcodeGifts WHERE Barcode = ${Barcode}";
+    List<Map<String, dynamic>> result = await db.readData(query);
+
+
+    Gift gift = Gift(name: result.first['Name'], category: result.first['Category'], status: "Available", description: result.first['Description'], price: result.first['Price'],eventId: eventid,PledgerID: -1,image: result.first['Image']);
+    return gift;
+  }
+static Future<bool> CheckBarcode(String Barcode)async{
+  final db = await Databaseclass();
+  String query = "SELECT * FROM BarcodeGifts WHERE Barcode = ${Barcode}";
+  List<Map<String, dynamic>> result = await db.readData(query);
+  if (result.isNotEmpty) return true;
+  return false;
+}
 
 
 }

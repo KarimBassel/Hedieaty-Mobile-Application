@@ -30,7 +30,7 @@ class _EventListPageState extends State<EventListPage> {
     _loadEvents();
     if(widget.isOwner)widget.User = await Friend.getUserObject(widget.User.id!);
     else widget.friend = await Friend.getUserObject(widget.friend!.id!);
-    setState(() {});
+    if(mounted)setState(() {});
   }
 
   @override
@@ -39,7 +39,7 @@ class _EventListPageState extends State<EventListPage> {
     final DatabaseReference _eventRef = FirebaseDatabase.instance.ref('Events');
     EventsSubscription=_eventRef.orderByChild('UserID').equalTo(widget.isOwner?widget.User.id!:widget.friend!.id).onValue.listen((event)async {
       if (event.snapshot.exists) {
-        await fetchEventsFromLocalDb();
+        if(mounted)await fetchEventsFromLocalDb();
       }
     });
     _loadEvents();
@@ -53,9 +53,10 @@ class _EventListPageState extends State<EventListPage> {
   // Load the events initially
   void _loadEvents() async {
     List<Event> loadedEvents = await getEvents();
+    if(mounted){
     setState(() {
       events = loadedEvents;
-    });
+    }); }
   }
 
   Future<List<Event>> getEvents() async {
@@ -200,6 +201,7 @@ class _EventListPageState extends State<EventListPage> {
                       onTap: () async {
                         DateTime? pickedDate = await controller.PickEventDate(event, context);
                         if (pickedDate != null) {
+                          if(mounted)
                           setState(() {
                             selectedDate = pickedDate;
                           });
@@ -291,6 +293,7 @@ class _EventListPageState extends State<EventListPage> {
     bool? success = await controller.deleteEvent(event);
     if (success ?? false) {
       showCustomSnackBar(context, "Event Deleted Successfully", backgroundColor: Colors.red);
+      if(mounted)
       setState(() {
         events.remove(event);
       });

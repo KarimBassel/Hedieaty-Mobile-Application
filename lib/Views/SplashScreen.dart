@@ -2,36 +2,45 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Views/Home.dart';
 import 'package:hedieatymobileapplication/Views/SignIn.dart';
-
-import '../Models/Authentication.dart';
 import '../Models/Friend.dart';
 
 class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Check if the user is authenticated when the app starts
+    return FutureBuilder<User?>(
+      future: Future.value(FirebaseAuth.instance.currentUser),
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-    Future.delayed(Duration(seconds: 2), () async {
-      User? user = await FirebaseAuth.instance.currentUser;
-      if (user != null && user.uid != null) {
-        print("User signed in: ${user.uid}");
-        Friend authenticateduser = await Friend.getUserObject(int.tryParse(user.uid.hashCode.toString())!);
-        // User is authenticated, navigate to the home page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Home(User:authenticateduser)),
-        );
-      } else {
-        // User is not authenticated, navigate to the login page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SignIn()),
-        );
-      }
-    });
+        if (authSnapshot.hasData && authSnapshot.data != null) {
+          User? user = authSnapshot.data;
+          return FutureBuilder<Friend>(
+            future: Friend.getUserObject(int.tryParse(FirebaseAuth.instance.currentUser!.uid.hashCode.toString())!),
+            builder: (context, friendSnapshot) {
+              if (friendSnapshot.connectionState == ConnectionState.waiting) {
+                return Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-    return Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+              if (friendSnapshot.hasData) {
+
+                return Home(User: friendSnapshot.data!);
+              }
+
+
+              return SignIn();
+            },
+          );
+        } else {
+
+          return SignIn();
+        }
+      },
     );
   }
 }

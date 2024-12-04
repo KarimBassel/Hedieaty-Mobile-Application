@@ -13,7 +13,7 @@ import firebase_database
 import sqflite_darwin
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  ConnectivityPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlugin"))
+  ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
   FileSelectorPlugin.register(with: registry.registrar(forPlugin: "FileSelectorPlugin"))
   FLTFirebaseAuthPlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseAuthPlugin"))
   FLTFirebaseCorePlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseCorePlugin"))

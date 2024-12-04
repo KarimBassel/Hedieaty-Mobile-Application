@@ -27,6 +27,7 @@ void main() async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
 
   //on app restart sync the cached data only
   FirebaseDatabase.instance.setPersistenceEnabled(true);

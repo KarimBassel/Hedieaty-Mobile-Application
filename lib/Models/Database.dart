@@ -71,6 +71,18 @@ CREATE TABLE Gifts (
 );
 
 ''');
+      db.execute('''
+CREATE TABLE BarcodeGifts (
+  ID INTEGER PRIMARY KEY AUTOINCREMENT,
+  Name TEXT NOT NULL,
+  Description TEXT,
+  Category TEXT,
+  Price INTEGER,
+  Image TEXT,
+  Barcode TEXT
+);
+''');
+
 
 db.execute('''
 CREATE TABLE Friends (
@@ -666,6 +678,51 @@ Future<void> syncUsersFromFirebase()async{
       }
     });
 
+
+    databaseRef.child('BarcodeGifts').onChildAdded.listen((event){
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map) {
+        db!.insert('BarcodeGifts', {
+          'ID': giftsData['ID'],
+          'Barcode':giftsData['Barcode'],
+          'Name': giftsData['Name'],
+          'Description': giftsData['Description'],
+          'Category': giftsData['Category'],
+          'Price': giftsData['Price'],
+          'Image': giftsData['Image'],
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Barcode gift Added from firebase to local");
+      }
+    });
+    databaseRef.child('BarcodeGifts').onChildAdded.listen((event){
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map) {
+        db!.insert('BarcodeGifts', {
+          'ID': giftsData['ID'],
+          'Barcode':giftsData['Barcode'],
+          'Name': giftsData['Name'],
+          'Description': giftsData['Description'],
+          'Category': giftsData['Category'],
+          'Price': giftsData['Price'],
+          'Image': giftsData['Image'],
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Barcode gift Added from firebase to local");
+      }
+    });databaseRef.child('BarcodeGifts').onChildChanged.listen((event){
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map) {
+        db!.insert('BarcodeGifts', {
+          'ID': giftsData['ID'],
+          'Barcode':giftsData['Barcode'],
+          'Name': giftsData['Name'],
+          'Description': giftsData['Description'],
+          'Category': giftsData['Category'],
+          'Price': giftsData['Price'],
+          'Image': giftsData['Image'],
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Barcode gift Added from firebase to local");
+      }
+    });
   }
 
 
