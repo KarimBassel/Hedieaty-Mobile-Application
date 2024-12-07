@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/FirebaseMessaging.dart';
 import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:hedieatymobileapplication/Models/Event.dart';
 import 'package:hedieatymobileapplication/Models/Friend.dart';
@@ -33,6 +35,9 @@ class _SignInState extends State<SignIn>{
         showCustomSnackBar(context, "Incorrect Email or Password");
       }
       else{
+        //saving the fcmToken for the current user
+        await FirebaseMessagingService().initNotifications(user);
+        //FirebaseMessagingService().listenForPledgedGifts();
         Friend authenticateduser = await Friend.getUserObject(user);
         print(user);
         Navigator.of(context).pushAndRemoveUntil(

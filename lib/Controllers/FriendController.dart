@@ -6,6 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
+import 'package:hedieatymobileapplication/FirebaseMessaging.dart';
 import 'package:hedieatymobileapplication/Models/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
 import '../Models/Database.dart';
@@ -172,12 +173,15 @@ GoToMyPledgedGifts(int userid,BuildContext context)async{
   Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
 }
 //Profile
-SignOut(BuildContext context){
-  auth.signOut();
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (context) => SignIn()),
-        (Route<dynamic> route) => false,
-  );
+SignOut(BuildContext context)async{
+    
+    await FirebaseMessagingService().removeFCMToken(FirebaseAuth.instance.currentUser!.uid.hashCode);
+    auth.signOut();
+  
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => SignIn()),
+          (Route<dynamic> route) => false,
+    );
 }
 
 EditProfileFieldOnSave(int userid,String field,TextEditingController controller,BuildContext context)async{

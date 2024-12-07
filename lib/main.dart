@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/FirebaseMessaging.dart';
 import 'package:hedieatymobileapplication/Views/EventList.dart';
 import 'package:hedieatymobileapplication/Views/MyPledgedGifts.dart';
 import 'package:hedieatymobileapplication/Views/SignIn.dart';
@@ -32,6 +34,7 @@ void main() async{
   //on app restart sync the cached data only
   FirebaseDatabase.instance.setPersistenceEnabled(true);
   FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000);
+
 
   //Firebase Listener Init
   Databaseclass dbHelper = Databaseclass();
