@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
 import 'package:hedieatymobileapplication/Models/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
 import 'SignIn.dart';
@@ -14,8 +15,7 @@ class Signup extends StatefulWidget {
 }
 
 class _SignUpState extends State<Signup> {
-  Databaseclass db = Databaseclass();
-  AuthService auth = AuthService();
+  final FriendController controller = FriendController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -34,38 +34,6 @@ class _SignUpState extends State<Signup> {
     }
   }
 
-  void _submitForm(BuildContext context) async {
-    if (_formKey.currentState!.validate()) {
-      final String name = _nameController.text.trim();
-      final String email = _emailController.text.trim();
-      final String preferences = _preferencesController.text.trim();
-      final String phoneNumber = _phoneNumberController.text.trim();
-      final String password = _passwordController.text.trim();
-      final File? image = _selectedImage;
-
-      final imageBytes = await File(image!.path).readAsBytes();
-      String encodedImage = base64Encode(imageBytes);
-
-      if (await Friend.getUserByPhoneNumber(phoneNumber)) {
-        showCustomSnackBar(context, "Phone number already registered");
-      } else {
-        // print(await db.insertData(
-        //     "INSERT INTO Users (Name, Email, Preferences, PhoneNumber, Password, Image) VALUES ('$name', '$email', '$preferences', '$phoneNumber', '$password', '$encodedImage');"));
-
-        //Sign up using Firebase Authentication
-        auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage);
-
-        showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
-        _nameController.clear();
-        _emailController.clear();
-        _preferencesController.clear();
-        _phoneNumberController.clear();
-        _passwordController.clear();
-        image.delete();
-        //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
-      }
-    }
-  }
 
   void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
     final snackBar = SnackBar(
@@ -226,8 +194,10 @@ class _SignUpState extends State<Signup> {
               ),
               SizedBox(height: 16),
               ElevatedButton(
-                onPressed:(){
-                  _submitForm(context);
+                onPressed:()async{
+                  //_submitForm(context);
+                  if(_selectedImage==null)showCustomSnackBar(context, "No Image Selected");
+                  else await controller.SubmitSignUpForm(_nameController, _emailController, _preferencesController, _phoneNumberController, _passwordController, _selectedImage, context, _formKey);
 
                 } ,
                 style: ElevatedButton.styleFrom(
@@ -251,10 +221,7 @@ class _SignUpState extends State<Signup> {
               // Link to SignIn page
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => SignIn()),
-                        (Route<dynamic> route) => false,
-                  );
+                  controller.NavigatetoSignIn(context);
                 },
                 child: Text(
                   'Already have an account? Sign In',

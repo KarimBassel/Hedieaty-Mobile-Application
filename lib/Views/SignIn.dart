@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
 import 'package:hedieatymobileapplication/FirebaseMessaging.dart';
 import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:hedieatymobileapplication/Models/Event.dart';
@@ -17,72 +18,12 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn>{
-  final Databaseclass db = Databaseclass();
-  AuthService auth = AuthService();
+  final FriendController contoller = FriendController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _EmailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _submitForm() async{
-    if (_formKey.currentState!.validate()) {
-      final String Email = _EmailController.text.trim();
-      final String password = _passwordController.text.trim();
 
-      // Sign in using Firebase Authentication
-      dynamic user = await auth.signInWithEmailAndPassword(Email, password);
-      //if user not found it returns null
-      if(user==null){
-        showCustomSnackBar(context, "Incorrect Email or Password");
-      }
-      else{
-        //saving the fcmToken for the current user
-        await FirebaseMessagingService().initNotifications(user);
-        //FirebaseMessagingService().listenForPledgedGifts();
-        Friend authenticateduser = await Friend.getUserObject(user);
-        print(user);
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => Home(User:authenticateduser)),
-              (Route<dynamic> route) => false,
-        );
-        //Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:authenticateduser)));
-      }
-
-    }
-  }
-
-
-  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
-    final snackBar = SnackBar(
-      content: Row(
-        children: [
-          Icon(
-            Icons.error_outline,  // Customize the icon
-            color: Colors.white,
-          ),
-          SizedBox(width: 8), // Add some space between the icon and the text
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-              overflow: TextOverflow.ellipsis,  // Ensure the text doesn't overflow
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: backgroundColor,  // Set the background color
-      duration: Duration(seconds: 3), // Duration the SnackBar will be shown
-      behavior: SnackBarBehavior.floating, // Makes the SnackBar float above other widgets
-      margin: EdgeInsets.all(16),  // Add some margin around the SnackBar
-      shape: RoundedRectangleBorder(  // Rounded corners for the SnackBar
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +88,10 @@ class _SignInState extends State<SignIn>{
                 //   child: Text('Sign In'),
                 // ),
           ElevatedButton(
-            onPressed: _submitForm,
+            onPressed: ()async{
+              await contoller.SubmitSignInForm(_EmailController, _passwordController, _formKey, context);
+
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.orange[300],
               padding: EdgeInsets.symmetric(vertical: 12),
@@ -170,10 +114,7 @@ class _SignInState extends State<SignIn>{
                 // Link to SignUp page
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => Signup()),
-                          (Route<dynamic> route) => false,
-                    );
+                    contoller.NavigatetoSignUp(context);
                   },
                   child: Text(
                     'Don\'t have an account? Sign Up',

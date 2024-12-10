@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:hedieatymobileapplication/Models/Event.dart';
@@ -138,32 +139,77 @@ class Friend {
 
 
 
+  // static Future<dynamic> registerFriend(int userID, String friendPhone) async {
+  //   final db = await Databaseclass();
+  //
+  //   try {
+  //     List<Map<String, dynamic>> friendResponse = await db.readData(
+  //         "SELECT * FROM Users WHERE PhoneNumber = '$friendPhone'");
+  //
+  //     if (friendResponse.isNotEmpty) {
+  //       int friendID = friendResponse[0]['ID'];
+  //
+  //       String query =
+  //           "INSERT INTO Friends (UserID, FriendID) VALUES ($userID, $friendID)";
+  //
+  //       var result = await db.insertData(query);
+  //       return Friend.fromMap(friendResponse[0]);
+  //
+  //     } else {
+  //       print('Friend with phone number $friendPhone not found.');
+  //       return false;
+  //     }
+  //   } catch (e) {
+  //
+  //     print("Error while registering friend: $e");
+  //     return null;
+  //   }
+  // }
   static Future<dynamic> registerFriend(int userID, String friendPhone) async {
-    final db = await Databaseclass();
+    final db = await Databaseclass(); // Ensure this function initializes the database correctly
+    final databaseRef = FirebaseDatabase.instance.ref();
 
     try {
-      List<Map<String, dynamic>> friendResponse = await db.readData(
-          "SELECT * FROM Users WHERE PhoneNumber = '$friendPhone'");
+      // Step 1: Search in Firebase for the user with the given phone number
+      DataSnapshot snapshot = await databaseRef.child('Users').get();
 
-      if (friendResponse.isNotEmpty) {
-        int friendID = friendResponse[0]['ID'];
+      if (snapshot.value != null && snapshot.value is Map) {
+        // Casting snapshot data as Map for easier traversal
+        Map<String, dynamic> users = Map<String, dynamic>.from(snapshot.value as Map);
 
-        String query =
-            "INSERT INTO Friends (UserID, FriendID) VALUES ($userID, $friendID)";
+        for (var user in users.entries) {
+          Map<String, dynamic> userData = Map<String, dynamic>.from(user.value);
 
-        var result = await db.insertData(query);
-        return Friend.fromMap(friendResponse[0]);
+          // Compare the phone number to find the friend
+          if (userData['PhoneNumber'] == friendPhone) {
+            int friendID = userData['ID'];
 
+            // SQL query to insert into the local database
+            String query = "INSERT INTO Friends (UserID, FriendID) VALUES ($userID, $friendID)";
+            var result = await db.insertData(query);
+
+            print("Friend added to local database using Firebase data.");
+
+            // Return the friend's information as a Friend object
+            return Friend.fromMap(userData);
+          }
+        }
+
+        // If no user matches the provided phone number
+        print("No user found with the phone number: $friendPhone");
+        return false;
       } else {
-        print('Friend with phone number $friendPhone not found.');
+        print("No data found in Firebase for Users.");
         return false;
       }
     } catch (e) {
-
+      // Log and return null on error
       print("Error while registering friend: $e");
       return null;
     }
   }
+
+
 
   static Future<bool> updateUser(int id, String field, dynamic value) async {
     final db = await Databaseclass();

@@ -24,8 +24,6 @@ class _ProfileState extends State<Profile> {
   FriendController controller= FriendController();
   File? _image;
   bool switchstate=false;
-  AuthService auth = AuthService();
-  Databaseclass db = Databaseclass();
   TextEditingController _nameController = TextEditingController(text: "Cristiano Ronaldo");
   TextEditingController _emailController = TextEditingController(text: "Cristiano@eng.asu.edu.eg");
   TextEditingController _preferencesController = TextEditingController(text: "Electronics, Sports");
@@ -244,7 +242,7 @@ class _ProfileState extends State<Profile> {
               elevation: 5,
             ),
             child: Text(
-              "SignOut",
+              "Sign Out",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

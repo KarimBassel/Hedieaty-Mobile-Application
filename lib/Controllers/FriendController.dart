@@ -12,10 +12,12 @@ import 'package:image_picker/image_picker.dart';
 import '../Models/Database.dart';
 import '../Models/Friend.dart';
 import '../Models/Gift.dart';
+import '../Views/Home.dart';
 import '../Views/MyPledgedGifts.dart';
 import '../Views/Profile.dart';
 import '../Views/EventList.dart';
 import '../Views/SignIn.dart';
+import '../Views/SignUp.dart';
 class FriendController {
   final Databaseclass db = Databaseclass();
   final databaseRef = FirebaseDatabase.instance.ref();
@@ -91,11 +93,15 @@ class FriendController {
         return updatedUser.friendlist;
       }
       else{
-        Friend updatedUser = await Friend.getUserObject(User.id!);
-
         await db!.syncFriendsTableToFirebase();
-        User=updatedUser!;
-        return User.friendlist;
+        //Future.delayed(Duration(seconds: 1),()async{
+          Friend updatedUser = await Friend.getUserObject(User.id!);
+
+
+          User=updatedUser!;
+          return User.friendlist;
+       // });
+
   }
   }
   }
@@ -174,10 +180,15 @@ GoToMyPledgedGifts(int userid,BuildContext context)async{
 }
 //Profile
 SignOut(BuildContext context)async{
-    
+    //remove FCMToken on signout
     await FirebaseMessagingService().removeFCMToken(FirebaseAuth.instance.currentUser!.uid.hashCode);
+    //delete local data on signout
+    db.DeleteLocalDataOnSignOut();
+    //cancel lsiteners
+    db.cancelRealtimeListeners();
+    //unauthenticate user
     auth.signOut();
-  
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => SignIn()),
           (Route<dynamic> route) => false,
@@ -193,6 +204,93 @@ EditProfileFieldOnSave(int userid,String field,TextEditingController controller,
 PopEditCard(BuildContext context)async{
   Navigator.of(context).pop();
 }
+
+SubmitSignInForm(TextEditingController _EmailController,TextEditingController _passwordController,
+    GlobalKey<FormState> _formKey,BuildContext context)async{
+  if (_formKey.currentState!.validate()) {
+    final String Email = _EmailController.text.trim();
+    final String password = _passwordController.text.trim();
+
+    // Sign in using Firebase Authentication
+    dynamic user = await auth.signInWithEmailAndPassword(Email, password);
+    //if user not found it returns null
+    if(user==null){
+      showCustomSnackBar(context, "Incorrect Email or Password");
+    }
+    else{
+      //saving the fcmToken for the current user
+      await FirebaseMessagingService().initNotifications(user);
+      //FirebaseMessagingService().listenForPledgedGifts();
+
+      //sync related rows to user from firebase
+      await db.setupRealtimeListenersOptimized(user);
+      Future.delayed(Duration(seconds: 2),()async{
+        //get user object from local db
+        Friend authenticateduser = await Friend.getUserObject(user);
+        print(user);
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => Home(User:authenticateduser)),
+              (Route<dynamic> route) => false,
+        );
+      });
+
+      //Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:authenticateduser)));
+    }
+
+  }
+}
+
+NavigatetoSignUp(BuildContext context){
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => Signup()),
+        (Route<dynamic> route) => false,
+  );
+}
+NavigatetoSignIn(BuildContext context){
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => SignIn()),
+        (Route<dynamic> route) => false,
+  );
+}
+
+SubmitSignUpForm(TextEditingController _nameController,TextEditingController _emailController,
+    TextEditingController _preferencesController,TextEditingController _phoneNumberController,
+    TextEditingController _passwordController,File? _selectedImage,BuildContext context,GlobalKey<FormState> _formKey)async{
+
+  if (_formKey.currentState!.validate()) {
+    final String name = _nameController.text.trim();
+    final String email = _emailController.text.trim();
+    final String preferences = _preferencesController.text.trim();
+    final String phoneNumber = _phoneNumberController.text.trim();
+    final String password = _passwordController.text.trim();
+    final File? image = _selectedImage;
+
+    final imageBytes = await File(image!.path).readAsBytes();
+    String encodedImage = base64Encode(imageBytes);
+
+    if (await Friend.getUserByPhoneNumber(phoneNumber)) {
+  showCustomSnackBar(context, "Phone number already registered");
+  }
+    else if(_selectedImage==null){
+      showCustomSnackBar(context, "No Image Selected");
+    }else {
+
+  //Sign up using Firebase Authentication
+  auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage);
+
+  showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
+  _nameController.clear();
+  _emailController.clear();
+  _preferencesController.clear();
+  _phoneNumberController.clear();
+  _passwordController.clear();
+  image.delete();
+  //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
+  }
+}
+}
+
+
 
 
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_database/firebase_database.dart';
 import 'package:hedieatymobileapplication/Models/Event.dart';
 import 'package:hedieatymobileapplication/Models/Friend.dart';
@@ -7,7 +9,16 @@ import 'package:path/path.dart';
 
 class Databaseclass {
   static Database? _MyDataBase;
-
+  StreamSubscription? friendsSubscription;
+  StreamSubscription? usersAddedSubscription;
+  StreamSubscription? usersChangedSubscription;
+  StreamSubscription? usersRemovedSubscription;
+  StreamSubscription? eventsAddedSubscription;
+  StreamSubscription? eventsChangedSubscription;
+  StreamSubscription? eventsRemovedSubscription;
+  StreamSubscription? giftsAddedSubscription;
+  StreamSubscription? giftsChangedSubscription;
+  StreamSubscription? giftsRemovedSubscription;
   Future<Database?> get MyDataBase async {
     if (_MyDataBase == null) {
       print("Okshhhhhhhhhhhhh");
@@ -477,7 +488,7 @@ Future<void> syncUsersFromFirebase()async{
   }
 
 
-
+//no longer used
   void setupRealtimeListeners()async {
     Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
@@ -708,7 +719,8 @@ Future<void> syncUsersFromFirebase()async{
         }, conflictAlgorithm: ConflictAlgorithm.replace);
         print("Barcode gift Added from firebase to local");
       }
-    });databaseRef.child('BarcodeGifts').onChildChanged.listen((event){
+    });
+    databaseRef.child('BarcodeGifts').onChildChanged.listen((event){
       var giftsData = event.snapshot.value;
       if (giftsData is Map) {
         db!.insert('BarcodeGifts', {
@@ -726,6 +738,207 @@ Future<void> syncUsersFromFirebase()async{
   }
 
 
+
+//optimized listener to get necessary rows only
+  setupRealtimeListenersOptimized(int userID) async {
+    Database? db = await MyDataBase;
+    final databaseRef = FirebaseDatabase.instance.ref();
+
+    final List<int> friendIds = [];
+
+    final friendsDataSnapshot = await databaseRef.child('Friends').get();
+    if (friendsDataSnapshot.value is List) {
+      final friendsData = friendsDataSnapshot.value as List;
+      for (int i = 0; i < friendsData.length; i++) {
+        final value = friendsData[i];
+        if (value is Map && value['UserID'] == userID) {
+          int friendId = value['FriendID'];
+          friendIds.add(friendId);
+
+          db!.insert('Friends', {
+            'UserID': value['UserID'],
+            'FriendID': value['FriendID'],
+            'ID': i, // Using the index as ID
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      }
+      print("Initial friends list cached: $friendIds");
+    }
+
+    friendsSubscription = databaseRef.child('Friends').onChildAdded.listen((event) async {
+      var friendData = event.snapshot.value;
+      if (friendData is Map && friendData['UserID'] == userID) {
+        int friendID = friendData['FriendID'];
+
+        if (!friendIds.contains(friendID)) {
+          friendIds.add(friendID);
+
+          await db!.insert('Friends', {
+            'UserID': friendData['UserID'],
+            'FriendID': friendData['FriendID'],
+            'ID': event.snapshot.key,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+          print("New friend detected and cached: FriendID = $friendID");
+
+
+          await fetchAndSyncFriendData(friendID, db, databaseRef);
+        }
+      }
+    });
+
+
+    usersAddedSubscription = databaseRef.child('Users').onChildAdded.listen((event) {
+      var usersMap = event.snapshot.value;
+      if (usersMap is Map && (usersMap['ID'] == userID || friendIds.contains(usersMap['ID']))) {
+        db!.insert('Users', {
+          'ID': usersMap['ID'],
+          'Name': usersMap['Name'],
+          'Email': usersMap['Email'],
+          'Preferences': usersMap['Preferences'],
+          'PhoneNumber': usersMap['PhoneNumber'],
+          'Password': usersMap['Password'],
+          'Image': usersMap['Image'],
+          'Notifications': usersMap['Notifications'] ?? 0,
+          'UpcomingEvents': usersMap['UpcomingEvents'] ?? 0,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("User Added/Updated from Firebase to local");
+      }
+    });
+
+    eventsAddedSubscription = databaseRef.child('Events').onChildAdded.listen((event) {
+      var eventsData = event.snapshot.value;
+      if (eventsData is Map && (eventsData['UserID'] == userID || friendIds.contains(eventsData['UserID']))) {
+        db!.insert('Events', {
+          'ID': eventsData['ID'],
+          'Name': eventsData['Name'],
+          'Date': eventsData['Date'],
+          'Location': eventsData['Location'],
+          'Description': eventsData['Description'],
+          'Category': eventsData['Category'],
+          'Status': eventsData['Status'],
+          'UserID': eventsData['UserID']
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Event Added from Firebase to local");
+      }
+    });
+
+    giftsAddedSubscription = databaseRef.child('Gifts').onChildAdded.listen((event) {
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map && (giftsData['UserID'] == userID || friendIds.contains(giftsData['UserID']))) {
+        db!.insert('Gifts', {
+          'ID': giftsData['ID'],
+          'Name': giftsData['Name'],
+          'Description': giftsData['Description'],
+          'Category': giftsData['Category'],
+          'Price': giftsData['Price'],
+          'Image': giftsData['Image'],
+          'Status': giftsData['Status'] ?? 0,
+          'EventID': giftsData['EventID'],
+          'PledgerID': giftsData['PledgerID'] ?? -1,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Gift Added from Firebase to local");
+      }
+    });
+  }
+// fetch information fo newly added friend
+  Future<void> fetchAndSyncFriendData(int friendID, Database db, DatabaseReference databaseRef) async {
+    // Fetch and sync the friend's user details
+    final userSnapshot = await databaseRef.child('Users/$friendID').get();
+    if (userSnapshot.value is Map) {
+      var userData = userSnapshot.value as Map;
+      await db.insert('Users', {
+        'ID': userData['ID'],
+        'Name': userData['Name'],
+        'Email': userData['Email'],
+        'Preferences': userData['Preferences'],
+        'PhoneNumber': userData['PhoneNumber'],
+        'Password': userData['Password'],
+        'Image': userData['Image'],
+        'Notifications': userData['Notifications'] ?? 0,
+        'UpcomingEvents': userData['UpcomingEvents'] ?? 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      print("Friend user data synced: FriendID = $friendID");
+    }
+
+    // Fetch and sync the friend's events
+    final eventsSnapshot = await databaseRef.child('Events').get();
+    if (eventsSnapshot.value is Map) {
+      final eventsMap = eventsSnapshot.value as Map;
+      for (var entry in eventsMap.entries) {
+        final event = entry.value;
+        if (event is Map && event['UserID'] == friendID) {
+          await db.insert('Events', {
+            'ID': event['ID'],
+            'Name': event['Name'],
+            'Date': event['Date'],
+            'Location': event['Location'],
+            'Description': event['Description'],
+            'Category': event['Category'],
+            'Status': event['Status'],
+            'UserID': event['UserID']
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          print("Friend event synced: EventID = ${event['ID']}");
+        }
+      }
+    }
+
+    // Fetch and sync the friend's gifts
+    final giftsSnapshot = await databaseRef.child('Gifts').get();
+    if (giftsSnapshot.value is Map) {
+      final giftsMap = giftsSnapshot.value as Map;
+      for (var entry in giftsMap.entries) {
+        final gift = entry.value;
+        if (gift is Map && gift['UserID'] == friendID) {
+          await db.insert('Gifts', {
+            'ID': gift['ID'],
+            'Name': gift['Name'],
+            'Description': gift['Description'],
+            'Category': gift['Category'],
+            'Price': gift['Price'],
+            'Image': gift['Image'],
+            'Status': gift['Status'] ?? 0,
+            'EventID': gift['EventID'],
+            'PledgerID': gift['PledgerID'] ?? -1,
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          print("Friend gift synced: GiftID = ${gift['ID']}");
+        }
+      }
+    }
+  }
+
+
+
+// Function to cancel all listeners on sign-out
+  cancelRealtimeListeners() {
+    friendsSubscription?.cancel();
+    usersAddedSubscription?.cancel();
+    usersChangedSubscription?.cancel();
+    usersRemovedSubscription?.cancel();
+    eventsAddedSubscription?.cancel();
+    eventsChangedSubscription?.cancel();
+    eventsRemovedSubscription?.cancel();
+    giftsAddedSubscription?.cancel();
+    giftsChangedSubscription?.cancel();
+    giftsRemovedSubscription?.cancel();
+    print("All Firebase listeners have been cancelled.");
+  }
+
+
+  void DeleteLocalDataOnSignOut()async{
+    Database? db = await MyDataBase;
+    await db!.execute("Delete from Users");
+    print("Users table deleted successfully");
+
+    await db!.execute("Delete from Friends");
+    print("Friends table deleted successfully");
+
+    await db!.execute("Delete from Gifts");
+    print("Gifts table deleted successfully");
+
+    await db!.execute("Delete from Events");
+    print("Events table deleted successfully");
+  }
 
   Future<void> syncUsersTableToFirebase() async {
     Database? db = await MyDataBase;

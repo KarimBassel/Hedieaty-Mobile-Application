@@ -23,7 +23,7 @@ class _EventListPageState extends State<EventListPage> {
   late StreamSubscription<DatabaseEvent> EventsSubscription;
   String _sortCriterion = 'Name';
   List<Event> events=[];
-  Databaseclass db = Databaseclass();
+  //Databaseclass db = Databaseclass();
 
   Future<void> fetchEventsFromLocalDb() async {
     await Future.delayed(const Duration(seconds: 1));

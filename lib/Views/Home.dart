@@ -28,7 +28,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Databaseclass? db;
+
   List<Friend>? filteredfriends;
   final FriendController controller = FriendController();
   final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
@@ -36,7 +36,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    db = Databaseclass();
     filteredfriends=widget.User.friendlist;
   }
 
@@ -187,9 +186,12 @@ class _HomeState extends State<Home> {
             child: Text('Add Friend from Contacts'),
             onTap: () async {
                   filteredfriends = await controller.AddFriendFromContacts(_contactPicker, widget.User, context);
-                  setState(() {
+                  Future.delayed(Duration(seconds: 2),(){
+                    setState(() {
 
+                    });
                   });
+
               // Contact? contact = await _contactPicker.selectContact();
               // if(contact!=null) {
               //   String ExtractedNumber = contact!.phoneNumbers
@@ -267,9 +269,12 @@ class _HomeState extends State<Home> {
           //     }
           //   }
              filteredfriends = await controller.AddFriendManual(PhoneController, widget.User, context);
-            setState(() {
+             Future.delayed(Duration(seconds: 5),(){
+               setState(() {
 
-            });
+               });
+             });
+
             //await db!.syncFriendsTableToFirebase();
             Navigator.of(context).pop();
           },

@@ -110,6 +110,7 @@ class GiftController{
 
   DeleteGift(Gift gift,int eventid)async{
     bool delgift = await Gift.DeleteGift(gift.id!);
+    await db.syncGiftsDeletionToFirebase(gift.id!);
     return await Gift.getGiftList(eventid);
   }
   FetchGiftByID(int giftid)async{

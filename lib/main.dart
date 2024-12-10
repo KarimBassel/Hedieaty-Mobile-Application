@@ -36,10 +36,6 @@ void main() async{
   FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000);
 
 
-  //Firebase Listener Init
-  Databaseclass dbHelper = Databaseclass();
-  dbHelper.setupRealtimeListeners();
-
   runApp(const MyApp());
 }
 
