@@ -48,6 +48,7 @@ class _SignInState extends State<SignIn>{
                 SizedBox(height: 16),
                 // Phone Number Field
                 TextFormField(
+                  key: Key("emailField"),
                   controller: _EmailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
@@ -67,6 +68,7 @@ class _SignInState extends State<SignIn>{
                 SizedBox(height: 16),
                 // Password Field
                 TextFormField(
+                  key: Key("passwordField"),
                   controller: _passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -88,6 +90,7 @@ class _SignInState extends State<SignIn>{
                 //   child: Text('Sign In'),
                 // ),
           ElevatedButton(
+            key: Key('signInButton'),
             onPressed: ()async{
               await contoller.SubmitSignInForm(_EmailController, _passwordController, _formKey, context);
 

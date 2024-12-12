@@ -28,23 +28,79 @@ class FriendController {
     Friend? uptodate = await Friend.getUserObject(userid);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => Profile(User: uptodate)),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            Profile(User: uptodate),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Define the animation (slide in from the bottom)
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
     );
   }
+
 
   //Home
   CreateEventOnTap(int userid, BuildContext context) async {
     Friend user = await Friend.getUserObject(userid);
-    Navigator.push(context, MaterialPageRoute(
-        builder: (context) => EventListPage(isOwner: true, User: user,)));
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            EventListPage(isOwner: true, User: user),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Slide from the right
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
+    );
   }
+
 
 //Home
   FriendCardOnTap(int friendid, Friend user, BuildContext context) async {
     Friend friend = await Friend.getUserObject(friendid);
-    Navigator.push(context, MaterialPageRoute(
-        builder: (context) =>
-            EventListPage(isOwner: false, User: user, friend: friend)));
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            EventListPage(isOwner: false, User: user, friend: friend),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Slide animation from the right
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
+    );
   }
 
 //Home
@@ -168,32 +224,87 @@ class FriendController {
   }
 
   //Profile
-GoToEventsListFromProfile(int Userid,BuildContext context)async{
-  Friend? updateduser = await Friend.getUserObject(Userid);
-  Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,User: updateduser,)));
-  return updateduser;
-}
+  GoToEventsListFromProfile(int Userid, BuildContext context) async {
+    Friend? updateduser = await Friend.getUserObject(Userid);
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            EventListPage(isOwner: true, User: updateduser),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Slide animation from the bottom
+          const begin = Offset(0.0, 1.0); // Start position: bottom of the screen
+          const end = Offset.zero; // End position: original position
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
+    );
+    return updateduser;
+  }
+
 //Profile
-GoToMyPledgedGifts(int userid,BuildContext context)async{
-  List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(userid);
-  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
-}
+  GoToMyPledgedGifts(int userid, BuildContext context) async {
+    List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(userid);
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MyPledgedGifts(pledgedgifts: plgf),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero; // End position: original position
+          const curve = Curves.easeInOut;
+
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
 //Profile
-SignOut(BuildContext context)async{
-    //remove FCMToken on signout
-    await FirebaseMessagingService().removeFCMToken(FirebaseAuth.instance.currentUser!.uid.hashCode);
-    //delete local data on signout
+  SignOut(BuildContext context) async {
+    // Remove FCM Token on signout
+    await FirebaseMessagingService()
+        .removeFCMToken(FirebaseAuth.instance.currentUser!.uid.hashCode);
+
+    // Delete local data on signout
     db.DeleteLocalDataOnSignOut();
-    //cancel lsiteners
+
+    // Cancel listeners
     db.cancelRealtimeListeners();
-    //unauthenticate user
+
+    // Unauthenticate user
     auth.signOut();
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => SignIn()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => SignIn(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
           (Route<dynamic> route) => false,
     );
-}
+  }
+
 
 EditProfileFieldOnSave(int userid,String field,TextEditingController controller,BuildContext context)async{
   bool update = await Friend.updateUser(userid,field,controller.text);
@@ -205,53 +316,83 @@ PopEditCard(BuildContext context)async{
   Navigator.of(context).pop();
 }
 
-SubmitSignInForm(TextEditingController _EmailController,TextEditingController _passwordController,
-    GlobalKey<FormState> _formKey,BuildContext context)async{
+SubmitSignInForm(
+    TextEditingController _EmailController,
+    TextEditingController _passwordController,
+    GlobalKey<FormState> _formKey,
+    BuildContext context,
+    ) async {
   if (_formKey.currentState!.validate()) {
     final String Email = _EmailController.text.trim();
     final String password = _passwordController.text.trim();
 
     // Sign in using Firebase Authentication
     dynamic user = await auth.signInWithEmailAndPassword(Email, password);
-    //if user not found it returns null
-    if(user==null){
-      showCustomSnackBar(context, "Incorrect Email or Password");
-    }
-    else{
-      //saving the fcmToken for the current user
-      await FirebaseMessagingService().initNotifications(user);
-      //FirebaseMessagingService().listenForPledgedGifts();
 
-      //sync related rows to user from firebase
+    // If user not found, show an error snackbar
+    if (user == null) {
+      showCustomSnackBar(context, "Incorrect Email or Password");
+    } else {
+      // Save the FCM token for the current user
+      await FirebaseMessagingService().initNotifications(user);
+
+      // Sync related rows to user from Firebase
       await db.setupRealtimeListenersOptimized(user);
-      Future.delayed(Duration(seconds: 2),()async{
-        //get user object from local db
-        Friend authenticateduser = await Friend.getUserObject(user);
+
+
+      Future.delayed(Duration(seconds: 2), () async {
+        // Get the authenticated user object from the local database
+        Friend authenticatedUser = await Friend.getUserObject(user);
         print(user);
+
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => Home(User:authenticateduser)),
-              (Route<dynamic> route) => false,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                Home(User: authenticatedUser),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+          ),
+              (Route<dynamic> route) => false, // Remove all previous routes
         );
       });
-
-      //Navigator.push(context,MaterialPageRoute(builder: (context)=> Home(User:authenticateduser)));
     }
-
   }
 }
 
-NavigatetoSignUp(BuildContext context){
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (context) => Signup()),
-        (Route<dynamic> route) => false,
-  );
-}
-NavigatetoSignIn(BuildContext context){
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (context) => SignIn()),
-        (Route<dynamic> route) => false,
-  );
-}
+  NavigatetoSignUp(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => Signup(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+          (Route<dynamic> route) => false,
+    );
+  }
+
+  NavigatetoSignIn(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => SignIn(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+          (Route<dynamic> route) => false,
+    );
+  }
+
 
 SubmitSignUpForm(TextEditingController _nameController,TextEditingController _emailController,
     TextEditingController _preferencesController,TextEditingController _phoneNumberController,

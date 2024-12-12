@@ -165,6 +165,9 @@ class Friend {
   //     return null;
   //   }
   // }
+
+
+  //fetch intended user from firebase if exists and make new friendship
   static Future<dynamic> registerFriend(int userID, String friendPhone) async {
     final db = await Databaseclass(); // Ensure this function initializes the database correctly
     final databaseRef = FirebaseDatabase.instance.ref();

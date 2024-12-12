@@ -186,36 +186,12 @@ class _HomeState extends State<Home> {
             child: Text('Add Friend from Contacts'),
             onTap: () async {
                   filteredfriends = await controller.AddFriendFromContacts(_contactPicker, widget.User, context);
-                  Future.delayed(Duration(seconds: 2),(){
+                  Future.delayed(Duration(seconds: 5),(){
                     setState(() {
 
                     });
                   });
 
-              // Contact? contact = await _contactPicker.selectContact();
-              // if(contact!=null) {
-              //   String ExtractedNumber = contact!.phoneNumbers
-              //       .toString()
-              //       .replaceAll(RegExp(r'[\[\]]'), '')
-              //       .replaceFirst('+2', '');
-              //   //print(ExtractedNumber);
-              //   if (widget.User.PhoneNumber == ExtractedNumber)
-              //     showCustomSnackBar(context, "Cannot Add Yourself");
-              //   else {
-              //     dynamic newfriend = await Friend.registerFriend(
-              //         widget.User.id!, ExtractedNumber);
-              //     if (newfriend is bool) {
-              //       showCustomSnackBar(context, "User Not Found");
-              //     }
-              //     else {
-              //       Friend updatedUser = await Friend.getUserObject(
-              //           widget.User.id!);
-              //       widget.User = updatedUser!;
-              //       filteredfriends = widget.User.friendlist;
-              //     }
-              //   }
-              //
-              // }
             },
           ),
         ],
@@ -252,23 +228,8 @@ class _HomeState extends State<Home> {
         ),
         TextButton(
            onPressed: ()async {
-          //   print(widget.User.id!);
-          //   final phone = PhoneController.text;
-          //   if(widget.User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
-          //   else{
-          //     dynamic newfriend = await Friend.registerFriend(widget.User.id!, phone);
-          //     //returned false from search query of the phone number
-          //     if(newfriend is bool){
-          //       showCustomSnackBar(context,"User Not Found");
-          //     }
-          //     else{
-          //       Friend updatedUser = await Friend.getUserObject(widget.User.id!);
-          //       await db!.syncFriendsTableToFirebase();
-          //       widget.User=updatedUser!;
-          //       filteredfriends = widget.User.friendlist;
-          //     }
-          //   }
              filteredfriends = await controller.AddFriendManual(PhoneController, widget.User, context);
+             //5 seconds to fetch new added friends and his info then rebuild
              Future.delayed(Duration(seconds: 5),(){
                setState(() {
 

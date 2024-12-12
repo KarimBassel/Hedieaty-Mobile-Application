@@ -27,26 +27,66 @@ class GiftController{
     return e;
   }
 
-  OnGiftCardTap(bool isOwner,BuildContext context,Gift gift,String isPledged,
-      Friend User,int eventid)async{
-    if(isOwner){
+  OnGiftCardTap(bool isOwner, BuildContext context, Gift gift,
+      String isPledged, Friend User, int eventid) async {
+    if (isOwner) {
       print("okash");
-       await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: isOwner, isPledged: gift.status == "Pledged" ? true : false,
-            isPledger: false,User: User,))
-      );
-    }
-    else{
       await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => GiftDetails(gift: gift, isOwner: isOwner, isPledged: gift.status == "Pledged" ? true : false,
-            isPledger: (gift.PledgerID==User.id)?true:false,User: User,))
-      );
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => GiftDetails(
+            gift: gift,
+            isOwner: isOwner,
+            isPledged: gift.status == "Pledged" ? true : false,
+            isPledger: false,
+            User: User,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0); // Start position: to the right
+            const end = Offset.zero; // End position: original position
+            const curve = Curves.easeInOut;
 
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(
+              position: offsetAnimation,
+              child: child,
+            );
+          },
+        ),
+      );
+    } else {
+      await Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => GiftDetails(
+            gift: gift,
+            isOwner: isOwner,
+            isPledged: gift.status == "Pledged" ? true : false,
+            isPledger: (gift.PledgerID == User.id) ? true : false,
+            User: User,
+          ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0); // Start position: to the right
+              const end = Offset.zero; // End position: original position
+              const curve = Curves.easeInOut;
+
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+        ),
+      );
     }
+
     return await Event.getEventById(eventid);
   }
+
   syncGiftsTableToFirebase()async{
     await db.syncGiftsTableToFirebase();
   }
