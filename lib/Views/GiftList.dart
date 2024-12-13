@@ -70,9 +70,9 @@ class _GiftListPageState extends State<GiftListPage> {
       appBar: AppBar(
         title: Text('Gifts for ${widget.event.name}'),
         actions: [
-          if(widget.isOwner)
+          if(widget.isOwner && widget.event.status=="Upcoming")
           IconButton(onPressed: ()async{
-            dynamic ress = await controller.ScanBarcode(context,widget.event.id!);
+            dynamic ress = await controller.ScanBarcode(context,widget.event.id!,widget.event.userId!);
             if(ress is List<Gift>)widget.event.giftlist=ress;
             //print(res);
             if(mounted)
@@ -153,7 +153,7 @@ class _GiftListPageState extends State<GiftListPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (widget.isOwner && gift.status == "Available")
+                          if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.edit),
                                 onPressed: () async{
@@ -164,7 +164,7 @@ class _GiftListPageState extends State<GiftListPage> {
                                   });
                                 }
                             ),
-                          if (widget.isOwner && gift.status == "Available")
+                          if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.delete),
                                 onPressed: ()async {
@@ -177,13 +177,13 @@ class _GiftListPageState extends State<GiftListPage> {
                             ),
                         ],
                       ),
-                      onTap: () async{
+                      onTap: widget.event.status=="Upcoming" ?() async{
                         widget.event=await controller.OnGiftCardTap(widget.isOwner, context, gift, gift.status, widget.User, widget.event.id!);
                         if(mounted)
                         setState(() {
 
                         });
-                      },
+                      } : (){controller.showCustomSnackBar(context,"Event Completed!");},
                     ),
                   );
                 },
@@ -254,7 +254,7 @@ class _GiftListPageState extends State<GiftListPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (widget.isOwner && gift.status == "Available")
+                          if (widget.isOwner && gift.status == "Available"&& widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.edit),
                                 onPressed: ()async {
@@ -265,7 +265,7 @@ class _GiftListPageState extends State<GiftListPage> {
                                   });
                                 }
                             ),
-                          if (widget.isOwner && gift.status == "Available")
+                          if (widget.isOwner && gift.status == "Available"&& widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.delete),
                                 onPressed: () async{
@@ -278,15 +278,13 @@ class _GiftListPageState extends State<GiftListPage> {
                             ),
                         ],
                       ),
-                      onTap: () async{
+                      onTap: widget.event.status=="Upcoming"? () async{
                           widget.event=await controller.OnGiftCardTap(widget.isOwner, context, gift, gift.status, widget.User, widget.event.id!);
                           if(mounted)
                           setState(() {
 
                           });
-
-
-                      },
+                      } : (){controller.showCustomSnackBar(context,"Event Completed!");},
                     ),
                   );
                 },
@@ -295,13 +293,13 @@ class _GiftListPageState extends State<GiftListPage> {
           ],
         ),
       ),
-      floatingActionButton: !widget.isOwner
+      floatingActionButton: !widget.isOwner || widget.event.status=="Completed"
           ? null
           :
               FloatingActionButton(
                       onPressed: ()async{
               _addGift();
-              await controller.syncGiftsTableToFirebase();
+              //await controller.syncGiftsTableToFirebase();
               if(mounted)
               setState(() {
 
@@ -399,12 +397,14 @@ class _GiftListPageState extends State<GiftListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                widget.event=await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context);
+                await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context);
+                widget.event.giftlist = await controller.GetGiftList(widget.event.id!);
+                //Future.delayed(Duration(seconds: 2));
+                if(mounted)
                 setState(() {
 
                 });
-
-                Navigator.of(context).pop();
+                await controller.syncGiftsTableToFirebase();
               },
               child: Text('Save'),
             ),

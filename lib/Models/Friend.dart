@@ -168,7 +168,7 @@ class Friend {
 
 
   //fetch intended user from firebase if exists and make new friendship
-  static Future<dynamic> registerFriend(int userID, String friendPhone) async {
+  static Future<dynamic> registerFriend(int userID, String friendPhone,int id) async {
     final db = await Databaseclass(); // Ensure this function initializes the database correctly
     final databaseRef = FirebaseDatabase.instance.ref();
 
@@ -188,7 +188,7 @@ class Friend {
             int friendID = userData['ID'];
 
             // SQL query to insert into the local database
-            String query = "INSERT INTO Friends (UserID, FriendID) VALUES ($userID, $friendID)";
+            String query = "INSERT INTO Friends (ID,UserID, FriendID) VALUES ($id,$userID, $friendID)";
             var result = await db.insertData(query);
 
             print("Friend added to local database using Firebase data.");

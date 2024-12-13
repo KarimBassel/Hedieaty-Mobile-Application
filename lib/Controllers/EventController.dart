@@ -70,8 +70,10 @@ class EventController{
         : 'Upcoming';
 
     if (event == null) {
+      int generatedid = await generateUniqueGiftId();
       // Add new event
       await Event.insertEvent(Event(
+        id: generatedid,
         name: name,
         category: category,
         status: status,
@@ -95,6 +97,38 @@ class EventController{
     await db.syncEventsTableToFirebase();
     Navigator.of(context).pop();
     //loadEvents();
+  }
+
+  Future<int> generateUniqueGiftId() async {
+    DatabaseReference giftsRef = FirebaseDatabase.instance.ref("Events");
+    DataSnapshot snapshot = await giftsRef.get();
+    List<int> existingGiftIds = [];
+
+    if (snapshot.exists) {
+      if (snapshot.value is Map) {
+        Map<String, dynamic> giftsMap = Map<String, dynamic>.from(snapshot.value as Map);
+        existingGiftIds = giftsMap.keys.map((key) => int.tryParse(key) ?? 0).toList();
+      } else if (snapshot.value is List) {
+        List<dynamic> giftsList = snapshot.value as List;
+        for (int i = 0; i < giftsList.length; i++) {
+          if (giftsList[i] != null) {
+            existingGiftIds.add(i);
+          }
+        }
+      } else {
+        print("Unexpected Firebase data format: ${snapshot.value.runtimeType}");
+      }
+    } else {
+      print("Firebase snapshot is empty or does not exist.");
+    }
+
+    int index = 1;
+    while (existingGiftIds.contains(index)) {
+      print("Checking index: $index");
+      index++;
+    }
+
+    return index;
   }
 
 

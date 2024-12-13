@@ -77,6 +77,7 @@ CREATE TABLE Gifts (
   Status INTEGER DEFAULT 0,
   EventID INTEGER NOT NULL,
   PledgerID INTEGER DEFAULT -1,
+  UserID INTEGER NOT NULL,
   FOREIGN KEY (EventID) REFERENCES Events(ID),
   FOREIGN KEY (PledgerID) REFERENCES Users(ID)
 );
@@ -183,7 +184,7 @@ CREATE TABLE Friends (
           db!.insert('Friends', {
             'UserID': value['UserID'],
             'FriendID': value['FriendID'],
-            'ID': i, // Using the index as ID
+            'ID': i,
           }, conflictAlgorithm: ConflictAlgorithm.replace);
         }
       }
@@ -341,6 +342,7 @@ CREATE TABLE Friends (
           'Status': giftsData['Status'] ?? 0,
           'EventID': giftsData['EventID'],
           'PledgerID': giftsData['PledgerID'] ?? -1,
+          'UserID': giftsData['UserID']
         }, conflictAlgorithm: ConflictAlgorithm.replace);
         print("Gift Added from Firebase to local");
       }
@@ -360,6 +362,7 @@ CREATE TABLE Friends (
           'Status': updatedGiftData['Status'] ?? 0,
           'EventID': updatedGiftData['EventID'],
           'PledgerID': updatedGiftData['PledgerID'] ?? -1,
+          'UserID': updatedGiftData['UserID']
         }, where: 'ID = ?', whereArgs: [updatedGiftData['ID']]);
         print("Gift updated from Firebase to local");
       }
@@ -371,6 +374,21 @@ CREATE TABLE Friends (
       if (removedGiftData is Map) {
         await db!.delete('Gifts', where: 'ID = ?', whereArgs: [removedGiftData['ID']]);
         print("Gift removed from local cache: ID = ${removedGiftData['ID']}");
+      }
+    });
+    databaseRef.child('BarcodeGifts').onChildAdded.listen((event){
+      var giftsData = event.snapshot.value;
+      if (giftsData is Map) {
+        db!.insert('BarcodeGifts', {
+        'ID': giftsData['ID'],
+        'Barcode':giftsData['Barcode'],
+        'Name': giftsData['Name'],
+        'Description': giftsData['Description'],
+        'Category': giftsData['Category'],
+        'Price': giftsData['Price'],
+        'Image': giftsData['Image'],
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Barcode gift Added from firebase to local");
       }
     });
   }
@@ -434,6 +452,7 @@ CREATE TABLE Friends (
             'Status': gift['Status'] ?? 0,
             'EventID': gift['EventID'],
             'PledgerID': gift['PledgerID'] ?? -1,
+            'UserID' : gift['UserID']
           }, conflictAlgorithm: ConflictAlgorithm.replace);
           print("Friend gift synced: GiftID = ${gift['ID']}");
         }

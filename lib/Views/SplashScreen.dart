@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
 import 'package:hedieatymobileapplication/Views/Home.dart';
 import 'package:hedieatymobileapplication/Views/SignIn.dart';
 import '../Models/Friend.dart';
 
 class SplashScreen extends StatelessWidget {
+  final FriendController controller = FriendController();
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<User?>(
@@ -28,8 +30,9 @@ class SplashScreen extends StatelessWidget {
               }
 
               if (friendSnapshot.hasData) {
-
-                return Home(User: friendSnapshot.data!);
+                // Cancel listeners
+                controller.AlreadyAuthenticatedUser(FirebaseAuth.instance.currentUser!.uid.hashCode);
+                return Home(User:  friendSnapshot.data!);
               }
 
 

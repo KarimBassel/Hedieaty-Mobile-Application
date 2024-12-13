@@ -42,8 +42,8 @@ class GiftController{
             User: User,
           ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0); // Start position: to the right
-            const end = Offset.zero; // End position: original position
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
             const curve = Curves.easeInOut;
 
             var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
@@ -68,8 +68,8 @@ class GiftController{
             User: User,
           ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0); // Start position: to the right
-              const end = Offset.zero; // End position: original position
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
               const curve = Curves.easeInOut;
 
               var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
@@ -90,19 +90,23 @@ class GiftController{
   syncGiftsTableToFirebase()async{
     await db.syncGiftsTableToFirebase();
   }
-  OnSaveGiftPressed(File? imageFile,String? encodedImage,Gift? gift,Event event,
-      TextEditingController nameController,TextEditingController categoryController,
-      TextEditingController descriptionController,
-      TextEditingController priceController,String status,BuildContext context)async{
-    // Check if an image is selected and encode it
+  OnSaveGiftPressed(File? imageFile, String? encodedImage, Gift? gift, Event event,
+      TextEditingController nameController, TextEditingController categoryController,
+      TextEditingController descriptionController, TextEditingController priceController,
+      String status, BuildContext context) async {
+
     if (imageFile != null) {
       final imageBytes = await File(imageFile!.path).readAsBytes();
       encodedImage = base64Encode(imageBytes);
     }
 
     if (gift == null) {
+      int giftId = await generateUniqueGiftId();
+      print("GIFT ID -------------------------------");
+      print(giftId);
       // Adding a new gift
       event.giftlist!.add(Gift(
+        id: giftId, // Assign the unique ID
         name: nameController.text,
         category: categoryController.text,
         status: status,
@@ -110,9 +114,11 @@ class GiftController{
         price: int.tryParse(priceController.text) ?? 0,
         image: encodedImage ?? '',
         eventId: event.id,
+        UserID: event.userId!
       ));
 
       bool addGift = await Gift.addGift(Gift(
+        id: giftId,
         name: nameController.text,
         category: categoryController.text,
         status: status,
@@ -120,12 +126,15 @@ class GiftController{
         price: int.tryParse(priceController.text) ?? 0,
         image: encodedImage ?? '',
         eventId: event.id,
+        UserID: event.userId!
       ));
 
-
-      showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
+      if (addGift) {
+        showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
+      } else {
+        showCustomSnackBar(context, "Failed to Add Gift", backgroundColor: Colors.red);
+      }
     } else {
-      // Editing an existing gift
       gift.name = nameController.text;
       gift.category = categoryController.text;
       gift.status = status;
@@ -135,18 +144,54 @@ class GiftController{
 
       bool updateStatus = await Gift.updateGift(gift);
 
-
-      showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
+      if (updateStatus) {
+        showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
+      } else {
+        showCustomSnackBar(context, "Failed to Update Gift", backgroundColor: Colors.red);
+      }
     }
-   event.giftlist = await Gift.getGiftList(event.id!);
-    await db.syncGiftsTableToFirebase();
-    return event;
 
-
-
+    event.giftlist = await Gift.getGiftList(event.id!);
     Navigator.of(context).pop();
-
   }
+  GetGiftList(int eventid)async{
+    return await Gift.getGiftList(eventid);
+  }
+// Function to generate a unique gift ID by checking existing IDs in Firebase
+  Future<int> generateUniqueGiftId() async {
+    DatabaseReference giftsRef = FirebaseDatabase.instance.ref("Gifts");
+    DataSnapshot snapshot = await giftsRef.get();
+    List<int> existingGiftIds = [];
+
+    if (snapshot.exists) {
+      if (snapshot.value is Map) {
+        Map<String, dynamic> giftsMap = Map<String, dynamic>.from(snapshot.value as Map);
+        existingGiftIds = giftsMap.keys.map((key) => int.tryParse(key) ?? 0).toList();
+      } else if (snapshot.value is List) {
+        List<dynamic> giftsList = snapshot.value as List;
+        for (int i = 0; i < giftsList.length; i++) {
+          if (giftsList[i] != null) {
+            existingGiftIds.add(i);
+          }
+        }
+      } else {
+        print("Unexpected Firebase data format: ${snapshot.value.runtimeType}");
+      }
+    } else {
+      print("Firebase snapshot is empty or does not exist.");
+    }
+
+    int index = 1;
+    while (existingGiftIds.contains(index)) {
+      print("Checking index: $index");
+      index++;
+    }
+
+    return index;
+  }
+
+
+
 
   DeleteGift(Gift gift,int eventid)async{
     bool delgift = await Gift.DeleteGift(gift.id!);
@@ -163,7 +208,7 @@ class GiftController{
     return await Gift.getGiftList(eventid);
   }
 
-  ScanBarcode(BuildContext context,int eventid)async{
+  ScanBarcode(BuildContext context,int eventid,int userid)async{
 
     String? res = await SimpleBarcodeScanner.scanBarcode(
       context,
@@ -179,8 +224,10 @@ class GiftController{
       scanFormat: ScanFormat.ONLY_BARCODE,
     );
     if(await Gift.CheckBarcode(res as String)){
-      Gift gift = await Gift.CreateGiftByBarcode(res as String,eventid);
+      Gift gift = await Gift.CreateGiftByBarcode(res as String,eventid,userid);
+      gift.id = await generateUniqueGiftId();
       bool addGift = await Gift.addGift(gift);
+      await db.syncGiftsTableToFirebase();
       return await Gift.getGiftList(eventid);
     }
     else{

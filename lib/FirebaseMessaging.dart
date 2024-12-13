@@ -31,15 +31,28 @@ class FirebaseMessagingService {
     }
 
     // Set up foreground message handler
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message)async {
       print('Received message while in foreground: ${message.notification?.title}');
-      _showNotification(message);
+      final DataSnapshot snapshot = await FirebaseDatabase.instance
+          .ref("Users/$userId")
+          .child("Notifications")
+          .get();
+      if(snapshot.value == 1) {
+        _showNotification(message);
+      }
     });
 
     // Set up background and terminated state message handler
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async{
       print('Notification caused app to open: ${message.notification?.title}');
-      _showNotification(message);
+      //if user enabled notifications
+      final DataSnapshot snapshot = await FirebaseDatabase.instance
+          .ref("Users/$userId")
+          .child("Notifications")
+          .get();
+      if(snapshot.value == 1) {
+        _showNotification(message);
+      }
     });
     //if app is terminated or in background
     FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
@@ -85,14 +98,16 @@ class FirebaseMessagingService {
     );
     const NotificationDetails platformChannelSpecifics =
     NotificationDetails(android: androidPlatformChannelSpecifics);
+    //if(FirebaseDatabase.instance.ref("Users/${userId}").child("Notifications").get() == 1){
+      await flutterLocalNotificationsPlugin.show(
+        0,
+        message.notification?.title,
+        message.notification?.body,
+        platformChannelSpecifics,
+        payload: message.data.toString(),
+      );
+    //}
 
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      message.notification?.title,
-      message.notification?.body,
-      platformChannelSpecifics,
-      payload: message.data.toString(),
-    );
   }
   Future<void> removeFCMToken(int userId) async {
     try {

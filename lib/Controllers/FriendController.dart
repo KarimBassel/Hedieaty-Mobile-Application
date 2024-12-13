@@ -32,7 +32,6 @@ class FriendController {
         pageBuilder: (context, animation, secondaryAnimation) =>
             Profile(User: uptodate),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Define the animation (slide in from the bottom)
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
@@ -59,7 +58,6 @@ class FriendController {
         pageBuilder: (context, animation, secondaryAnimation) =>
             EventListPage(isOwner: true, User: user),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Slide from the right
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
@@ -86,7 +84,6 @@ class FriendController {
         pageBuilder: (context, animation, secondaryAnimation) =>
             EventListPage(isOwner: false, User: user, friend: friend),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Slide animation from the right
           const begin = Offset(1.0, 0.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
@@ -104,8 +101,7 @@ class FriendController {
   }
 
 //Home
-  AddFriendFromContacts(FlutterNativeContactPicker _contactPicker, Friend User,
-      BuildContext context) async {
+  AddFriendFromContacts(FlutterNativeContactPicker _contactPicker, Friend User, BuildContext context) async {
     Contact? contact = await _contactPicker.selectContact();
     if (contact != null) {
       String ExtractedNumber = contact!.phoneNumbers
@@ -116,8 +112,9 @@ class FriendController {
       if (User.PhoneNumber == ExtractedNumber)
         showCustomSnackBar(context, "Cannot Add Yourself");
       else {
+        int generatedid = await generateUniqueFriendId();
         dynamic newfriend = await Friend.registerFriend(
-            User.id!, ExtractedNumber);
+            User.id!, ExtractedNumber,generatedid);
         if (newfriend is bool) {
           Friend updatedUser = await Friend.getUserObject(User.id!);
           User = updatedUser!;
@@ -141,7 +138,8 @@ class FriendController {
     final phone = PhoneController.text;
     if(User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
     else{
-      dynamic newfriend = await Friend.registerFriend(User.id!, phone);
+      int generatedid = await generateUniqueFriendId();
+      dynamic newfriend = await Friend.registerFriend(User.id!, phone,generatedid);
       //returned false from search query of the phone number
       if(newfriend is bool){
         showCustomSnackBar(context,"User Not Found");
@@ -149,18 +147,39 @@ class FriendController {
         return updatedUser.friendlist;
       }
       else{
+        //HEEEEEEEEREEEEEEEEEEEEEEEEEEEEEEEEEE
         await db!.syncFriendsTableToFirebase();
-        //Future.delayed(Duration(seconds: 1),()async{
           Friend updatedUser = await Friend.getUserObject(User.id!);
 
 
           User=updatedUser!;
           return User.friendlist;
-       // });
 
   }
   }
   }
+
+  Future<int> generateUniqueFriendId() async {
+    DatabaseReference friendsRef = FirebaseDatabase.instance.ref("Friends");
+    DataSnapshot snapshot = await friendsRef.get();
+    List<int> existingFriendIds = [];
+
+    if (snapshot.exists && snapshot.value is Map) {
+      Map<String, dynamic> friendsMap = Map<String, dynamic>.from(snapshot.value as Map);
+      existingFriendIds = friendsMap.keys.map((key) => int.tryParse(key) ?? 0).toList();
+    } else {
+      print("No valid map data found or snapshot is empty");
+    }
+
+    int index = 1;
+    while (existingFriendIds.contains(index)) {
+      print(index);
+      index++;
+    }
+
+    return index;
+  }
+
 
   void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
     final snackBar = SnackBar(
@@ -232,9 +251,8 @@ class FriendController {
         pageBuilder: (context, animation, secondaryAnimation) =>
             EventListPage(isOwner: true, User: updateduser),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Slide animation from the bottom
-          const begin = Offset(0.0, 1.0); // Start position: bottom of the screen
-          const end = Offset.zero; // End position: original position
+          const begin = Offset(0.0, 1.0);
+          const end = Offset.zero;
           const curve = Curves.easeInOut;
 
           var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
@@ -261,7 +279,7 @@ class FriendController {
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
 
           const begin = Offset(0.0, 1.0);
-          const end = Offset.zero; // End position: original position
+          const end = Offset.zero;
           const curve = Curves.easeInOut;
 
           var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
@@ -305,6 +323,11 @@ class FriendController {
     );
   }
 
+  AlreadyAuthenticatedUser(int userID){
+    db.cancelRealtimeListeners();
+    db.setupRealtimeListenersOptimized(userID);
+  }
+
 
 EditProfileFieldOnSave(int userid,String field,TextEditingController controller,BuildContext context)async{
   bool update = await Friend.updateUser(userid,field,controller.text);
@@ -316,12 +339,7 @@ PopEditCard(BuildContext context)async{
   Navigator.of(context).pop();
 }
 
-SubmitSignInForm(
-    TextEditingController _EmailController,
-    TextEditingController _passwordController,
-    GlobalKey<FormState> _formKey,
-    BuildContext context,
-    ) async {
+SubmitSignInForm(TextEditingController _EmailController, TextEditingController _passwordController, GlobalKey<FormState> _formKey, BuildContext context,) async {
   if (_formKey.currentState!.validate()) {
     final String Email = _EmailController.text.trim();
     final String password = _passwordController.text.trim();
@@ -356,14 +374,23 @@ SubmitSignInForm(
               );
             },
           ),
-              (Route<dynamic> route) => false, // Remove all previous routes
+              (Route<dynamic> route) => false,
         );
       });
     }
   }
 }
 
-  NavigatetoSignUp(BuildContext context) {
+
+IsUserFound(TextEditingController emailcont,TextEditingController passcont)async{
+  dynamic user = await auth.signInWithEmailAndPassword(emailcont.text, passcont.text);
+
+  if(user==null)return false;
+  else return true;
+}
+
+
+NavigatetoSignUp(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => Signup(),
@@ -377,8 +404,8 @@ SubmitSignInForm(
           (Route<dynamic> route) => false,
     );
   }
-
-  NavigatetoSignIn(BuildContext context) {
+  
+NavigatetoSignIn(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => SignIn(),

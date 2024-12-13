@@ -22,7 +22,7 @@ class _SignInState extends State<SignIn>{
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _EmailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
+  bool isloading=false;
 
 
   @override
@@ -45,45 +45,74 @@ class _SignInState extends State<SignIn>{
                     backgroundImage: AssetImage('Assets/logo.webp'), // Logo as background
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 40),
                 // Phone Number Field
-                TextFormField(
-                  key: Key("emailField"),
-                  controller: _EmailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Email is required';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Enter a valid email';
-                    }
-                    return null;
-                  },
+            TextFormField(
+              key: Key("emailField"),
+              controller: _EmailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
-                SizedBox(height: 16),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+              ),
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Email is required';
+                }
+                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                  return 'Enter a valid email';
+                }
+                return null;
+              },
+            ),
+
+            SizedBox(height: 15),
                 // Password Field
-                TextFormField(
-                  key: Key("passwordField"),
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.visibility_off),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Password is required';
-                    }
-                    return null;
-                  },
+            TextFormField(
+              key: Key("passwordField"),
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
-                SizedBox(height: 20),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(color: Colors.blue),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+              ),
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Password is required';
+                }
+                return null;
+              },
+            ),
+
+            SizedBox(height: 50),
                 // Submit Button
                 // ElevatedButton(
                 //   onPressed: _submitForm,
@@ -91,8 +120,15 @@ class _SignInState extends State<SignIn>{
                 // ),
           ElevatedButton(
             key: Key('signInButton'),
-            onPressed: ()async{
-              await contoller.SubmitSignInForm(_EmailController, _passwordController, _formKey, context);
+            onPressed:isloading ? null: ()async{
+              if(await contoller.IsUserFound(_EmailController,_passwordController)){
+                isloading=true;
+                setState(() {});
+                await contoller.SubmitSignInForm(_EmailController, _passwordController, _formKey, context);
+              }
+              else{
+                contoller.showCustomSnackBar(context, "Incorrect Email or Password");
+              }
 
             },
             style: ElevatedButton.styleFrom(
@@ -103,7 +139,7 @@ class _SignInState extends State<SignIn>{
               ),
               elevation: 5,
             ),
-            child: Text(
+            child: isloading?CircularProgressIndicator(color: Colors.white,):Text(
               "SignIn",
               style: TextStyle(
                 fontSize: 18,

@@ -14,6 +14,7 @@ class Gift {
   int? PledgerID;
   String? Ownername;
   DateTime? DueDate;
+  int UserID;
 
   Gift({
     required this.name,
@@ -24,7 +25,8 @@ class Gift {
     this.image,
     this.eventId,
     this.id,
-    this.PledgerID
+    this.PledgerID,
+    required this.UserID
   });
 
   factory Gift.fromMap(Map<String, dynamic> map) {
@@ -39,7 +41,8 @@ class Gift {
       status: (map["Status"]==0)?"Available":"Pledged",
       eventId: map['EventID'],
       image: map['Image'],
-      PledgerID: map['PledgerID']
+      PledgerID: map['PledgerID'],
+      UserID: map['UserID']
     );
   }
 
@@ -53,7 +56,8 @@ class Gift {
       'Status': (status=="Available")?0:1,
       'EventID': eventId,
       'Image' : image,
-      'PledgerID':PledgerID??-1
+      'PledgerID':PledgerID??-1,
+      'UserID':UserID
     };
   }
  static Future<List<Gift>> getGiftList(int eventId) async {
@@ -77,8 +81,8 @@ class Gift {
     try {
       int status = (gift.status=="Available")?0:1;
       String query = """
-      INSERT INTO Gifts (Name, Description, Category, Price, Image, Status, EventID)
-      VALUES ('${gift.name}', '${gift.description}', '${gift.category}', ${gift.price}, '${gift.image}', ${status}, ${gift.eventId})
+      INSERT INTO Gifts (ID ,Name, Description, Category, Price, Image, Status, EventID,UserID)
+      VALUES (${gift.id},'${gift.name}', '${gift.description}', '${gift.category}', ${gift.price}, '${gift.image}', ${status}, ${gift.eventId},${gift.UserID})
     """;
 
 
@@ -168,14 +172,14 @@ class Gift {
       return null;
     }
   }
-  static Future<Gift> CreateGiftByBarcode(String Barcode,int eventid)async{
+  static Future<Gift> CreateGiftByBarcode(String Barcode,int eventid,int userid)async{
     final db = await Databaseclass();
 
     String query = "SELECT * FROM BarcodeGifts WHERE Barcode = ${Barcode}";
     List<Map<String, dynamic>> result = await db.readData(query);
 
 
-    Gift gift = Gift(name: result.first['Name'], category: result.first['Category'], status: "Available", description: result.first['Description'], price: result.first['Price'],eventId: eventid,PledgerID: -1,image: result.first['Image']);
+    Gift gift = Gift(name: result.first['Name'], category: result.first['Category'], status: "Available", description: result.first['Description'], price: result.first['Price'],eventId: eventid,PledgerID: -1,image: result.first['Image'],UserID: userid);
     return gift;
   }
 static Future<bool> CheckBarcode(String Barcode)async{

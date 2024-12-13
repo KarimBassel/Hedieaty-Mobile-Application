@@ -22,7 +22,7 @@ class Event {
     return Event(
       id: map['ID'],
       category: map["Category"],
-      status: "Upcoming",
+      status: map['Status'],
       name: map['Name'],
       date: DateTime.parse(map['Date']),
       location: map['Location'],
@@ -32,10 +32,11 @@ class Event {
   }
 
   Map<String, dynamic> toMap() {
+    String status = (date != null && date!.isAfter(DateTime.now())) ? "Upcoming" : "Completed";
     return {
       'ID': id,
-      'Status':"Upcoming",
-      'Category':category,
+      'Status': status,
+      'Category': category,
       'Name': name,
       'Date': date?.toIso8601String().split('T')[0],
       'Location': location,
@@ -46,7 +47,7 @@ class Event {
 
   static Future<void> insertEvent(Event event) async {
     final db = await Databaseclass();
-    await db.insertData("INSERT INTO Events (Name, Category, Status, Date, Location, Description, UserID) VALUES ('${event.name}', '${event.category}', '${event.status}', '${event.date?.toIso8601String().split('T')[0]}', '${event.location}', '${event.description}', ${event.userId });");
+    await db.insertData("INSERT INTO Events (ID,Name, Category, Status, Date, Location, Description, UserID) VALUES (${event.id},'${event.name}', '${event.category}', '${event.status}', '${event.date?.toIso8601String().split('T')[0]}', '${event.location}', '${event.description}', ${event.userId });");
     print("Event inserted successfully");
   }
   static Future<bool> updateEvent(Event event) async{

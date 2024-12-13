@@ -130,7 +130,7 @@ class _EventListPageState extends State<EventListPage> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.isOwner)
+                if (widget.isOwner && event.status=="Upcoming")
                   IconButton(
                     icon: Icon(Icons.edit),
                     onPressed: () async{
