@@ -30,7 +30,7 @@ class SplashScreen extends StatelessWidget {
               }
 
               if (friendSnapshot.hasData) {
-                // Cancel listeners
+                // Resetting realtime listeners
                 controller.AlreadyAuthenticatedUser(FirebaseAuth.instance.currentUser!.uid.hashCode);
                 return Home(User:  friendSnapshot.data!);
               }

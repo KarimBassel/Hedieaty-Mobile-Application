@@ -27,8 +27,7 @@ class GiftController{
     return e;
   }
 
-  OnGiftCardTap(bool isOwner, BuildContext context, Gift gift,
-      String isPledged, Friend User, int eventid) async {
+  OnGiftCardTap(bool isOwner, BuildContext context, Gift gift, String isPledged, Friend User, int eventid) async {
     if (isOwner) {
       print("okash");
       await Navigator.push(
@@ -99,7 +98,7 @@ class GiftController{
       final imageBytes = await File(imageFile!.path).readAsBytes();
       encodedImage = base64Encode(imageBytes);
     }
-
+    int parsedPrice = double.tryParse(priceController.text)?.toInt() ?? 0;
     if (gift == null) {
       int giftId = await generateUniqueGiftId();
       print("GIFT ID -------------------------------");
@@ -111,7 +110,7 @@ class GiftController{
         category: categoryController.text,
         status: status,
         description: descriptionController.text,
-        price: int.tryParse(priceController.text) ?? 0,
+        price: parsedPrice ?? 0,
         image: encodedImage ?? '',
         eventId: event.id,
         UserID: event.userId!
@@ -123,7 +122,7 @@ class GiftController{
         category: categoryController.text,
         status: status,
         description: descriptionController.text,
-        price: int.tryParse(priceController.text) ?? 0,
+        price: parsedPrice ?? 0,
         image: encodedImage ?? '',
         eventId: event.id,
         UserID: event.userId!
@@ -139,7 +138,7 @@ class GiftController{
       gift.category = categoryController.text;
       gift.status = status;
       gift.description = descriptionController.text;
-      gift.price = int.tryParse(priceController.text) ?? gift.price;
+      gift.price = parsedPrice ?? gift.price;
       gift.image = encodedImage ?? gift.image;
 
       bool updateStatus = await Gift.updateGift(gift);
@@ -269,10 +268,12 @@ class GiftController{
 
   PledgedButtonPressed(int eventid,BuildContext context)async {
     Event? e = await Event.getEventById(eventid);
-    await db.syncGiftsTableToFirebase();
+    //await db.syncGiftsTableToFirebase();
     return e!;
   }
-
+SyncGiftsTabletoFirebase()async{
+  await db.syncGiftsTableToFirebase();
+}
 
 
 

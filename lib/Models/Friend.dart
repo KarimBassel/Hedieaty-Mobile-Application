@@ -60,17 +60,6 @@ class Friend {
     };
   }
 
-  static Future<dynamic> getUser(String email, String pass) async {
-    final db = await Databaseclass();
-
-    List<Map<String, dynamic>> response = await db.readData(
-        "SELECT * FROM Users WHERE Email='${email}' and Password='${pass}'");
-
-    if (response.isEmpty) return false;
-
-    else return Friend.fromMap(response[0]);
-  }
-
 
   static Future<List<Friend>> getFriends(var userID) async {
     final db = await Databaseclass();
@@ -135,65 +124,60 @@ class Friend {
     }
     return eventsList;
   }
-
-
-
-
-  // static Future<dynamic> registerFriend(int userID, String friendPhone) async {
-  //   final db = await Databaseclass();
-  //
-  //   try {
-  //     List<Map<String, dynamic>> friendResponse = await db.readData(
-  //         "SELECT * FROM Users WHERE PhoneNumber = '$friendPhone'");
-  //
-  //     if (friendResponse.isNotEmpty) {
-  //       int friendID = friendResponse[0]['ID'];
-  //
-  //       String query =
-  //           "INSERT INTO Friends (UserID, FriendID) VALUES ($userID, $friendID)";
-  //
-  //       var result = await db.insertData(query);
-  //       return Friend.fromMap(friendResponse[0]);
-  //
-  //     } else {
-  //       print('Friend with phone number $friendPhone not found.');
-  //       return false;
-  //     }
-  //   } catch (e) {
-  //
-  //     print("Error while registering friend: $e");
-  //     return null;
-  //   }
-  // }
-
-
-  //fetch intended user from firebase if exists and make new friendship
-  static Future<dynamic> registerFriend(int userID, String friendPhone,int id) async {
-    final db = await Databaseclass(); // Ensure this function initializes the database correctly
+  static Future<bool> checkFriendshipExists(int userID, String friendPhone) async {
+    final db = await Databaseclass();
     final databaseRef = FirebaseDatabase.instance.ref();
 
     try {
-      // Step 1: Search in Firebase for the user with the given phone number
+      // Fetch user data from Firebase
       DataSnapshot snapshot = await databaseRef.child('Users').get();
 
       if (snapshot.value != null && snapshot.value is Map) {
-        // Casting snapshot data as Map for easier traversal
         Map<String, dynamic> users = Map<String, dynamic>.from(snapshot.value as Map);
 
         for (var user in users.entries) {
           Map<String, dynamic> userData = Map<String, dynamic>.from(user.value);
 
-          // Compare the phone number to find the friend
           if (userData['PhoneNumber'] == friendPhone) {
             int friendID = userData['ID'];
 
-            // SQL query to insert into the local database
+            // Check friendship in local database
+            String checkQuery = "SELECT COUNT(*) FROM Friends WHERE UserID = $userID AND FriendID = $friendID";
+            var checkResult = await db.readData(checkQuery);
+
+            return checkResult[0]['COUNT(*)'] > 0;
+          }
+        }
+      }
+
+      return false; // Return false if no matching phone number is found
+    } catch (e) {
+      print("Error while checking friendship: $e");
+      return false;
+    }
+  }
+
+  //fetch intended user from firebase if exists and make new friendship
+  static Future<dynamic> registerFriend(int userID, String friendPhone,int id) async {
+    final db = await Databaseclass();
+    final databaseRef = FirebaseDatabase.instance.ref();
+
+    try {
+      DataSnapshot snapshot = await databaseRef.child('Users').get();
+
+      if (snapshot.value != null && snapshot.value is Map) {
+        Map<String, dynamic> users = Map<String, dynamic>.from(snapshot.value as Map);
+
+        for (var user in users.entries) {
+          Map<String, dynamic> userData = Map<String, dynamic>.from(user.value);
+          if (userData['PhoneNumber'] == friendPhone) {
+            int friendID = userData['ID'];
+
             String query = "INSERT INTO Friends (ID,UserID, FriendID) VALUES ($id,$userID, $friendID)";
             var result = await db.insertData(query);
 
             print("Friend added to local database using Firebase data.");
 
-            // Return the friend's information as a Friend object
             return Friend.fromMap(userData);
           }
         }
@@ -325,40 +309,6 @@ class Friend {
     }
 
     return true;
-  }
-
-
-  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
-    final snackBar = SnackBar(
-      content: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Colors.white,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: backgroundColor,
-      duration: Duration(seconds: 3),
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
 

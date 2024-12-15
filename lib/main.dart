@@ -15,7 +15,6 @@ import 'Views/GiftDetails.dart';
 import 'Views/Home.dart';
 import 'Views/Profile.dart';
 import 'Views/GiftList.dart';
-import 'Views/FriendCard.dart';
 import 'Models/Gift.dart';
 import 'Models/Event.dart';
 import 'package:firebase_core/firebase_core.dart';

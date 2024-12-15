@@ -20,12 +20,6 @@ class EventController{
     if(isOwner)return await Friend.getUserObject(userid);
     else return await Friend.getUserObject(userid);
   }
-  // void _loadEvents() async {
-  //   List<Event> loadedEvents = await getEvents();
-  //   setState(() {
-  //     events = loadedEvents;
-  //   });
-  // }
 
   loadEvents(bool isOwner,int userid,int? friendid) async {
     if (isOwner) {

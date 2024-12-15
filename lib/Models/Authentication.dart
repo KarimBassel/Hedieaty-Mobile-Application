@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'friend.dart';
 
 class AuthService {
@@ -40,6 +41,7 @@ class AuthService {
       String phoneNumber,
       String password,
       String image,
+      BuildContext context
       ) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -62,13 +64,14 @@ class AuthService {
 
       return userCredential.user;
     } catch (e) {
+      showCustomSnackBar(context, "$e");
       print("Sign-up error: $e");
       return null;
     }
   }
 
 
-  Future<int?> signInWithEmailAndPassword(String email, String password) async {
+  Future<int?> signInWithEmailAndPassword(String email, String password,BuildContext context) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -89,6 +92,7 @@ class AuthService {
         return null;
       }
     } catch (e) {
+      showCustomSnackBar(context, "$e");
       print('Error during sign-in: $e');
       return null;
     }
@@ -103,4 +107,39 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Colors.white,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: backgroundColor,
+      duration: Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 }
+
+

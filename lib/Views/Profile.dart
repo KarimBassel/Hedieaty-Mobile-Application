@@ -34,26 +34,7 @@ class _ProfileState extends State<Profile> {
     _nameController.text = widget.User.name;
     _emailController.text = widget.User.email!;
     _preferencesController.text = widget.User.preferences!;
-  } //
-  // Future<void> _pickImage() async {
-  //   final ImagePicker _picker = ImagePicker();
-  //   final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-  //
-  //   if (pickedImage != null) {
-  //     final imagebytes = await File(pickedImage.path).readAsBytes();
-  //     String encodedim = base64Encode(imagebytes);
-  //
-  //     bool update = await Friend.updateUser(widget.User.id!,"Image",encodedim);
-  //     Friend? updateduser = await Friend.getUserById(widget.User.id!);
-  //     widget.User=updateduser!;
-  //     db.syncUsersTableToFirebase();
-  //     setState(() {
-  //       _image = File(pickedImage.path);
-  //
-  //
-  //     });
-  //   }
-  // }
+  }
 
   Widget _buildEditIcon(String label, TextEditingController controller) {
     return IconButton(
@@ -84,13 +65,6 @@ class _ProfileState extends State<Profile> {
             TextButton(
               child: Text('Save'),
               onPressed: () async{
-                // bool update = await Friend.updateUser(widget.User.id!,field,controller.text);
-                // Friend? updateduser = await Friend.getUserById(widget.User.id!);
-                // widget.User=updateduser!;
-                //
-                // db.syncUsersTableToFirebase();
-                // setState(() {});
-                // Navigator.of(context).pop();
                 widget.User=await controller.EditProfileFieldOnSave(widget.User.id!, field, Tcontroller, context);
                 await controller.PopEditCard(context);
                 setState(() {
@@ -108,9 +82,6 @@ class _ProfileState extends State<Profile> {
 
   @override
   Widget build(BuildContext context) {
-    // _nameController.text = widget.User.name;
-    // _emailController.text = widget.User.email!;
-    // _preferencesController.text = widget.User.preferences!;
     switchstate = (widget.User.notifications==0)?false:true;
     return Scaffold(
       appBar: AppBar(
@@ -188,11 +159,6 @@ class _ProfileState extends State<Profile> {
                   Switch(
                     value: switchstate,
                     onChanged: (value) async{
-                      // bool update = await Friend.updateUser(widget.User.id!,"Notifications",(value==false)?0:1);
-                      // Friend? updateduser = await Friend.getUserObject(widget.User.id!);
-                      // widget.User=updateduser!;
-                      //
-                      // db.syncUsersTableToFirebase();
                       widget.User = await controller.NotificationSwitch(widget.User, value, context);
                       setState(() {
                         switchstate = value;
@@ -209,9 +175,6 @@ class _ProfileState extends State<Profile> {
           SizedBox(height: 20),
 
           _buildNavigationButton("Go to Events List", ()async {
-            // Friend? updateduser = await Friend.getUserObject(widget.User.id!);
-            // widget.User=updateduser!;
-            // Navigator.push(context, MaterialPageRoute(builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
             widget.User = await controller.GoToEventsListFromProfile(widget.User.id!, context);
           }),
 
@@ -219,18 +182,11 @@ class _ProfileState extends State<Profile> {
 
 
           _buildNavigationButton("My Pledged Gifts", () async{
-            // List<Gift> plgf = await Friend.getPledgedGiftsWithEventDetails(widget.User.id!);
-            // Navigator.push(context, MaterialPageRoute(builder: (context) => MyPledgedGifts(pledgedgifts:plgf)));
             await controller.GoToMyPledgedGifts(widget.User.id!, context);
           }),
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: ()async{
-              // auth.signOut();
-              // Navigator.of(context).pushAndRemoveUntil(
-              //   MaterialPageRoute(builder: (context) => SignIn()),
-              //       (Route<dynamic> route) => false,
-              // );
               await controller.SignOut(context);
             },
             style: ElevatedButton.styleFrom(

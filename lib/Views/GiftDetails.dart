@@ -203,6 +203,8 @@ class _GiftDetailsState extends State<GiftDetails> {
                                   isOwner: widget.isOwner,
                                   User: widget.User!)),
                         );
+                        //update firebase gifts with the new info
+                        await controller.SyncGiftsTabletoFirebase();
                       }
                       else{
                         controller.showCustomSnackBar(context, "No Internet Connection!");

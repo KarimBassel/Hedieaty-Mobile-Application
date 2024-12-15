@@ -136,7 +136,16 @@ class FriendController {
 //Home
   AddFriendManual(TextEditingController PhoneController,Friend User,BuildContext context)async{
     final phone = PhoneController.text;
-    if(User.PhoneNumber==phone)showCustomSnackBar(context,"Cannot Add Yourself");
+    if(User.PhoneNumber==phone){
+      showCustomSnackBar(context,"Cannot Add Yourself");
+      Friend updatedUser = await Friend.getUserObject(User.id!);
+      return updatedUser.friendlist;
+    }
+    else if(await Friend.checkFriendshipExists(User.id!,phone)){
+      showCustomSnackBar(context,"Friendship already exists");
+      Friend updatedUser = await Friend.getUserObject(User.id!);
+      return updatedUser.friendlist;
+    }
     else{
       int generatedid = await generateUniqueFriendId();
       dynamic newfriend = await Friend.registerFriend(User.id!, phone,generatedid);
@@ -148,12 +157,18 @@ class FriendController {
       }
       else{
         //HEEEEEEEEREEEEEEEEEEEEEEEEEEEEEEEEEE
-        await db!.syncFriendsTableToFirebase();
+        await db.syncFriendsTableToFirebase();
+        //to get information of new friend added (events+gifts)
+        //necessary for waiting for friend info to be cached locally
+        await db.cancelRealtimeListeners();
+        await db.setupRealtimeListenersOptimized(User.id!);
+
+        //await Future.delayed(Duration(seconds:await db.setupRealtimeListenersOptimized(User.id!)),()async{
           Friend updatedUser = await Friend.getUserObject(User.id!);
-
-
           User=updatedUser!;
           return User.friendlist;
+        //});
+
 
   }
   }
@@ -323,9 +338,9 @@ class FriendController {
     );
   }
 
-  AlreadyAuthenticatedUser(int userID){
-    db.cancelRealtimeListeners();
-    db.setupRealtimeListenersOptimized(userID);
+  AlreadyAuthenticatedUser(int userID)async{
+    await db.cancelRealtimeListeners();
+    await db.setupRealtimeListenersOptimized(userID);
   }
 
 
@@ -345,7 +360,7 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
     final String password = _passwordController.text.trim();
 
     // Sign in using Firebase Authentication
-    dynamic user = await auth.signInWithEmailAndPassword(Email, password);
+    dynamic user = await auth.signInWithEmailAndPassword(Email, password,context);
 
     // If user not found, show an error snackbar
     if (user == null) {
@@ -355,10 +370,10 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
       await FirebaseMessagingService().initNotifications(user);
 
       // Sync related rows to user from Firebase
-      await db.setupRealtimeListenersOptimized(user);
+      //await db.setupRealtimeListenersOptimized(user);
 
-
-      Future.delayed(Duration(seconds: 2), () async {
+      //sync function returns a delay of 1 second
+      Future.delayed(Duration(seconds: await db.setupRealtimeListenersOptimized(user)),()async{
         // Get the authenticated user object from the local database
         Friend authenticatedUser = await Friend.getUserObject(user);
         print(user);
@@ -377,13 +392,14 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
               (Route<dynamic> route) => false,
         );
       });
+
     }
   }
 }
 
 
-IsUserFound(TextEditingController emailcont,TextEditingController passcont)async{
-  dynamic user = await auth.signInWithEmailAndPassword(emailcont.text, passcont.text);
+IsUserFound(TextEditingController emailcont,TextEditingController passcont,BuildContext context)async{
+  dynamic user = await auth.signInWithEmailAndPassword(emailcont.text, passcont.text,context);
 
   if(user==null)return false;
   else return true;
@@ -404,7 +420,7 @@ NavigatetoSignUp(BuildContext context) {
           (Route<dynamic> route) => false,
     );
   }
-  
+
 NavigatetoSignIn(BuildContext context) {
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
@@ -444,15 +460,17 @@ SubmitSignUpForm(TextEditingController _nameController,TextEditingController _em
     }else {
 
   //Sign up using Firebase Authentication
-  auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage);
-
-  showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
-  _nameController.clear();
-  _emailController.clear();
-  _preferencesController.clear();
-  _phoneNumberController.clear();
-  _passwordController.clear();
-  image.delete();
+  dynamic signupstate = auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage,context);
+  if(signupstate!=null) {
+    showCustomSnackBar(context, "Account Registered Successfully!",
+        backgroundColor: Colors.green);
+    _nameController.clear();
+    _emailController.clear();
+    _preferencesController.clear();
+    _phoneNumberController.clear();
+    _passwordController.clear();
+    image.delete();
+  }
   //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
   }
 }

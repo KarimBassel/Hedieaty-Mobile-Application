@@ -19,6 +19,7 @@ class Databaseclass {
   StreamSubscription? giftsAddedSubscription;
   StreamSubscription? giftsChangedSubscription;
   StreamSubscription? giftsRemovedSubscription;
+  StreamSubscription? BarcodeGiftsSubscription;
   Future<Database?> get MyDataBase async {
     if (_MyDataBase == null) {
       print("Okshhhhhhhhhhhhh");
@@ -237,10 +238,10 @@ CREATE TABLE Friends (
     });
 
     // onChildAdded listener for the Users node
-    usersAddedSubscription = databaseRef.child('Users').onChildAdded.listen((event) {
+    usersAddedSubscription = databaseRef.child('Users').onChildAdded.listen((event)async {
       var usersMap = event.snapshot.value;
       if (usersMap is Map && (usersMap['ID'] == userID || friendIds.contains(usersMap['ID']))) {
-        db!.insert('Users', {
+        await db!.insert('Users', {
           'ID': usersMap['ID'],
           'Name': usersMap['Name'],
           'Email': usersMap['Email'],
@@ -256,7 +257,7 @@ CREATE TABLE Friends (
     });
 
     // onChildUpdated listener for the Users node
-    databaseRef.child('Users').onChildChanged.listen((event) async {
+    usersChangedSubscription=databaseRef.child('Users').onChildChanged.listen((event) async {
       var updatedUserData = event.snapshot.value;
       if (updatedUserData is Map && (updatedUserData['ID'] == userID || friendIds.contains(updatedUserData['ID']))) {
         await db!.update('Users', {
@@ -275,7 +276,7 @@ CREATE TABLE Friends (
     });
 
     // onChildRemoved listener for the Users node
-    databaseRef.child('Users').onChildRemoved.listen((event) async {
+    usersRemovedSubscription=databaseRef.child('Users').onChildRemoved.listen((event) async {
       var removedUserData = event.snapshot.value;
       if (removedUserData is Map) {
         await db!.delete('Users', where: 'ID = ?', whereArgs: [removedUserData['ID']]);
@@ -284,10 +285,10 @@ CREATE TABLE Friends (
     });
 
     // onChildAdded listener for the Events node
-    eventsAddedSubscription = databaseRef.child('Events').onChildAdded.listen((event) {
+    eventsAddedSubscription = databaseRef.child('Events').onChildAdded.listen((event) async{
       var eventsData = event.snapshot.value;
       if (eventsData is Map && (eventsData['UserID'] == userID || friendIds.contains(eventsData['UserID']))) {
-        db!.insert('Events', {
+        await db!.insert('Events', {
           'ID': eventsData['ID'],
           'Name': eventsData['Name'],
           'Date': eventsData['Date'],
@@ -302,7 +303,7 @@ CREATE TABLE Friends (
     });
 
     // onChildUpdated listener for the Events node
-    databaseRef.child('Events').onChildChanged.listen((event) async {
+    eventsChangedSubscription=databaseRef.child('Events').onChildChanged.listen((event) async {
       var updatedEventData = event.snapshot.value;
       if (updatedEventData is Map && (updatedEventData['UserID'] == userID || friendIds.contains(updatedEventData['UserID']))) {
         await db!.update('Events', {
@@ -320,7 +321,7 @@ CREATE TABLE Friends (
     });
 
     // onChildRemoved listener for the Events node
-    databaseRef.child('Events').onChildRemoved.listen((event) async {
+    eventsRemovedSubscription=databaseRef.child('Events').onChildRemoved.listen((event) async {
       var removedEventData = event.snapshot.value;
       if (removedEventData is Map) {
         await db!.delete('Events', where: 'ID = ?', whereArgs: [removedEventData['ID']]);
@@ -329,10 +330,10 @@ CREATE TABLE Friends (
     });
 
     // onChildAdded listener for the Gifts node
-    giftsAddedSubscription = databaseRef.child('Gifts').onChildAdded.listen((event) {
+    giftsAddedSubscription = databaseRef.child('Gifts').onChildAdded.listen((event)async {
       var giftsData = event.snapshot.value;
       if (giftsData is Map && (giftsData['UserID'] == userID || friendIds.contains(giftsData['UserID']))) {
-        db!.insert('Gifts', {
+        await db!.insert('Gifts', {
           'ID': giftsData['ID'],
           'Name': giftsData['Name'],
           'Description': giftsData['Description'],
@@ -349,7 +350,7 @@ CREATE TABLE Friends (
     });
 
     // onChildUpdated listener for the Gifts node
-    databaseRef.child('Gifts').onChildChanged.listen((event) async {
+    giftsChangedSubscription=databaseRef.child('Gifts').onChildChanged.listen((event) async {
       var updatedGiftData = event.snapshot.value;
       if (updatedGiftData is Map && (updatedGiftData['UserID'] == userID || friendIds.contains(updatedGiftData['UserID']))) {
         await db!.update('Gifts', {
@@ -369,17 +370,17 @@ CREATE TABLE Friends (
     });
 
     // onChildRemoved listener for the Gifts node
-    databaseRef.child('Gifts').onChildRemoved.listen((event) async {
+    giftsRemovedSubscription=databaseRef.child('Gifts').onChildRemoved.listen((event) async {
       var removedGiftData = event.snapshot.value;
       if (removedGiftData is Map) {
         await db!.delete('Gifts', where: 'ID = ?', whereArgs: [removedGiftData['ID']]);
         print("Gift removed from local cache: ID = ${removedGiftData['ID']}");
       }
     });
-    databaseRef.child('BarcodeGifts').onChildAdded.listen((event){
+    BarcodeGiftsSubscription=databaseRef.child('BarcodeGifts').onChildAdded.listen((event)async{
       var giftsData = event.snapshot.value;
       if (giftsData is Map) {
-        db!.insert('BarcodeGifts', {
+        await db!.insert('BarcodeGifts', {
         'ID': giftsData['ID'],
         'Barcode':giftsData['Barcode'],
         'Name': giftsData['Name'],
@@ -391,6 +392,8 @@ CREATE TABLE Friends (
         print("Barcode gift Added from firebase to local");
       }
     });
+
+    return 1;
   }
 
 // fetch information fo newly added friend
@@ -463,17 +466,18 @@ CREATE TABLE Friends (
 
 
 // Function to cancel all listeners on sign-out
-  cancelRealtimeListeners() {
-    friendsSubscription?.cancel();
-    usersAddedSubscription?.cancel();
-    usersChangedSubscription?.cancel();
-    usersRemovedSubscription?.cancel();
-    eventsAddedSubscription?.cancel();
-    eventsChangedSubscription?.cancel();
-    eventsRemovedSubscription?.cancel();
-    giftsAddedSubscription?.cancel();
-    giftsChangedSubscription?.cancel();
-    giftsRemovedSubscription?.cancel();
+  cancelRealtimeListeners() async{
+    await friendsSubscription?.cancel();
+    await usersAddedSubscription?.cancel();
+    await usersChangedSubscription?.cancel();
+    await usersRemovedSubscription?.cancel();
+    await eventsAddedSubscription?.cancel();
+    await eventsChangedSubscription?.cancel();
+    await eventsRemovedSubscription?.cancel();
+    await giftsAddedSubscription?.cancel();
+    await giftsChangedSubscription?.cancel();
+    await giftsRemovedSubscription?.cancel();
+    await BarcodeGiftsSubscription?.cancel();
     print("All Firebase listeners have been cancelled.");
   }
 

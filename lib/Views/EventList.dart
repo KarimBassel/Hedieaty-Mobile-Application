@@ -170,6 +170,7 @@ class _EventListPageState extends State<EventListPage> {
   }
 
   void _showEventDialog({Event? event}) {
+    final _formKey = GlobalKey<FormState>(); // Form key for validation
     final nameController = TextEditingController(text: event?.name);
     final categoryController = TextEditingController(text: event?.category);
     final locationController = TextEditingController(text: event?.location);
@@ -185,76 +186,112 @@ class _EventListPageState extends State<EventListPage> {
             return AlertDialog(
               title: Text(event == null ? 'Add Event' : 'Edit Event'),
               content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(labelText: 'Event Name'),
-                    ),
-                    TextField(
-                      controller: categoryController,
-                      decoration: InputDecoration(labelText: 'Category'),
-                    ),
-                    SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () async {
-                        DateTime? pickedDate = await controller.PickEventDate(event, context);
-                        if (pickedDate != null) {
-                          if(mounted)
-                          setState(() {
-                            selectedDate = pickedDate;
-                          });
-                        }
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Text(
-                              'Date',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: nameController,
+                        decoration: InputDecoration(labelText: 'Event Name'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter an event name';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: categoryController,
+                        decoration: InputDecoration(labelText: 'Category'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a category';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () async {
+                          DateTime? pickedDate = await controller.PickEventDate(event, context);
+                          if (pickedDate != null) {
+                            if (mounted) {
+                              setState(() {
+                                selectedDate = pickedDate;
+                              });
+                            }
+                          }
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Text(
+                                'Date',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16.0,
-                              horizontal: 12.0,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16.0,
+                                horizontal: 12.0,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(5.0),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    selectedDate != null
+                                        ? '${selectedDate!.toLocal()}'.split(' ')[0]
+                                        : 'Select a date',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  Icon(Icons.calendar_today, color: Colors.blue),
+                                ],
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(5.0),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  selectedDate != null
-                                      ? '${selectedDate!.toLocal()}'.split(' ')[0]
-                                      : 'Select a date',
-                                  style: TextStyle(fontSize: 16),
+                            if (selectedDate == null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  'Please select a date',
+                                  style: TextStyle(color: Colors.red, fontSize: 12),
                                 ),
-                                Icon(Icons.calendar_today, color: Colors.blue),
-                              ],
-                            ),
-                          ),
-                        ],
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: locationController,
-                      decoration: InputDecoration(labelText: 'Location'),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: InputDecoration(labelText: 'Description'),
-                    ),
-                  ],
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: locationController,
+                        decoration: InputDecoration(labelText: 'Location'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a location';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(labelText: 'Description'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a description';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -266,10 +303,22 @@ class _EventListPageState extends State<EventListPage> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    await controller.SaveEvent(nameController.text, categoryController.text
-                        , locationController.text, descriptionController.text
-                        , selectedDate, context, event, widget.User.id!);
-                    _loadEvents();
+                    if (_formKey.currentState?.validate() == true && selectedDate != null) {
+                      await controller.SaveEvent(
+                        nameController.text,
+                        categoryController.text,
+                        locationController.text,
+                        descriptionController.text,
+                        selectedDate,
+                        context,
+                        event,
+                        widget.User.id!,
+                      );
+                      _loadEvents();
+
+                    } else if (selectedDate == null) {
+                      setState(() {});
+                    }
                   },
                   child: Text('Save'),
                 ),
@@ -280,6 +329,7 @@ class _EventListPageState extends State<EventListPage> {
       },
     );
   }
+
 
   void _addEvent() {
     _showEventDialog();

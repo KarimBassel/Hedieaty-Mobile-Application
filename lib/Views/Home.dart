@@ -10,7 +10,6 @@ import 'package:hedieatymobileapplication/Views/Profile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
-import 'FriendCard.dart';
 import '../Models/Friend.dart';
 import '../Models/Event.dart';
 //import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
@@ -213,6 +212,7 @@ class _HomeState extends State<Home> {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
+            keyboardType: TextInputType.number,
             controller: PhoneController,
             decoration: InputDecoration(labelText: 'Enter Phone Number'),
           ),
@@ -229,12 +229,10 @@ class _HomeState extends State<Home> {
         TextButton(
            onPressed: ()async {
              filteredfriends = await controller.AddFriendManual(PhoneController, widget.User, context);
-             //5 seconds to fetch new added friends and his info then rebuild
-             Future.delayed(Duration(seconds: 5),(){
                setState(() {
 
                });
-             });
+
 
             //await db!.syncFriendsTableToFirebase();
             Navigator.of(context).pop();

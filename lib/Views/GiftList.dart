@@ -329,34 +329,31 @@ class _GiftListPageState extends State<GiftListPage> {
   }
 
   void _showGiftDialog({Gift? gift}) async {
+    final _formKey = GlobalKey<FormState>(); // Form key for validation
     final nameController = TextEditingController(text: gift?.name);
     final categoryController = TextEditingController(text: gift?.category);
     final descriptionController = TextEditingController(text: gift?.description);
     final priceController = TextEditingController(text: gift?.price.toString());
 
-
     String status = gift?.status ?? 'Available';
     final List<String> statusOptions = ['Available', 'Pledged'];
 
-
     File? imageFile;
-
-
     String? encodedImage = gift?.image;
-
 
     void _pickImage() async {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
-        setState(() {
-          imageFile = File(pickedFile.path);
-        });
+        if (mounted) {
+          setState(() {
+            imageFile = File(pickedFile.path);
+          });
+        }
       }
     }
 
     Image? _getBase64Image(String base64Image) {
       try {
-
         Uint8List bytes = base64Decode(base64Image);
         return Image.memory(bytes);
       } catch (e) {
@@ -371,40 +368,82 @@ class _GiftListPageState extends State<GiftListPage> {
         return AlertDialog(
           title: Text(gift == null ? 'Add Gift' : 'Edit Gift'),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-
-                TextField(controller: nameController, decoration: InputDecoration(labelText: 'Gift Name')),
-                TextField(controller: categoryController, decoration: InputDecoration(labelText: 'Category')),
-                TextField(controller: descriptionController, decoration: InputDecoration(labelText: 'Description')),
-                TextField(controller: priceController, decoration: InputDecoration(labelText: 'Price')),
-                Center(
-                  child: IconButton(
-                    icon: Icon(Icons.camera_alt),
-                    onPressed: _pickImage,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(labelText: 'Gift Name'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a gift name';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                SizedBox(height: 10),
-                // Display the image (either base64 or selected image)
-                if (gift?.image != null && gift?.image!.isNotEmpty == true)
-                  _getBase64Image(gift!.image!)!,
-                if (imageFile != null) Image.file(imageFile!, width: 100, height: 100),
-              ],
+                  TextFormField(
+                    controller: categoryController,
+                    decoration: InputDecoration(labelText: 'Category'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a category';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(labelText: 'Description'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: priceController,
+                    decoration: InputDecoration(labelText: 'Price'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a price';
+                      }
+                      final price = double.tryParse(value);
+                      if (price == null || price <= 0) {
+                        return 'Please enter a valid price greater than zero';
+                      }
+                      return null;
+                    },
+                  ),
+                  Center(
+                    child: IconButton(
+                      icon: Icon(Icons.camera_alt),
+                      onPressed: _pickImage,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  if (gift?.image != null && gift?.image!.isNotEmpty == true)
+                    _getBase64Image(gift!.image!)!,
+                  if (imageFile != null) Image.file(imageFile!, width: 100, height: 100),
+                ],
+              ),
             ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context);
-                widget.event.giftlist = await controller.GetGiftList(widget.event.id!);
-                //Future.delayed(Duration(seconds: 2));
-                if(mounted)
-                setState(() {
-
-                });
-                await controller.syncGiftsTableToFirebase();
+                if (_formKey.currentState?.validate() == true) {
+                  await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context,);
+                  widget.event.giftlist = await controller.GetGiftList(widget.event.id!);
+                  if (mounted) {
+                    setState(() {});
+                  }
+                  await controller.syncGiftsTableToFirebase();
+                }
               },
               child: Text('Save'),
             ),
@@ -413,6 +452,7 @@ class _GiftListPageState extends State<GiftListPage> {
       },
     );
   }
+
 
 
 

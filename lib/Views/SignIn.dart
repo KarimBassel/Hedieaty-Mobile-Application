@@ -41,8 +41,8 @@ class _SignInState extends State<SignIn>{
               children: [
                 Center(
                   child: CircleAvatar(
-                    radius: 100, // Adjust the size of the avatar
-                    backgroundImage: AssetImage('Assets/logo.webp'), // Logo as background
+                    radius: 100,
+                    backgroundImage: AssetImage('Assets/logo.webp'),
                   ),
                 ),
                 SizedBox(height: 40),
@@ -113,21 +113,21 @@ class _SignInState extends State<SignIn>{
             ),
 
             SizedBox(height: 50),
-                // Submit Button
-                // ElevatedButton(
-                //   onPressed: _submitForm,
-                //   child: Text('Sign In'),
-                // ),
-          ElevatedButton(
+            ElevatedButton(
             key: Key('signInButton'),
             onPressed:isloading ? null: ()async{
-              if(await contoller.IsUserFound(_EmailController,_passwordController)){
-                isloading=true;
-                setState(() {});
-                await contoller.SubmitSignInForm(_EmailController, _passwordController, _formKey, context);
-              }
-              else{
-                contoller.showCustomSnackBar(context, "Incorrect Email or Password");
+              if(_formKey.currentState!.validate() == true) {
+                if (await contoller.IsUserFound(
+                    _EmailController, _passwordController,context)) {
+                  isloading = true;
+                  setState(() {});
+                  await contoller.SubmitSignInForm(
+                      _EmailController, _passwordController, _formKey, context);
+                }
+                else {
+                  contoller.showCustomSnackBar(
+                      context, "Incorrect Email or Password");
+                }
               }
 
             },
@@ -140,7 +140,7 @@ class _SignInState extends State<SignIn>{
               elevation: 5,
             ),
             child: isloading?CircularProgressIndicator(color: Colors.white,):Text(
-              "SignIn",
+              "Sign In",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

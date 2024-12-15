@@ -283,7 +283,7 @@ class _SignUpState extends State<Signup> {
                   elevation: 5,
                 ),
                 child: Text(
-                  "SignUp",
+                  "Sign Up",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
