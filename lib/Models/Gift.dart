@@ -15,6 +15,7 @@ class Gift {
   String? Ownername;
   DateTime? DueDate;
   int UserID;
+  int IsPublished;
 
   Gift({
     required this.name,
@@ -26,7 +27,8 @@ class Gift {
     this.eventId,
     this.id,
     this.PledgerID,
-    required this.UserID
+    required this.UserID,
+    required this.IsPublished
   });
 
   factory Gift.fromMap(Map<String, dynamic> map) {
@@ -42,7 +44,8 @@ class Gift {
       eventId: map['EventID'],
       image: map['Image'],
       PledgerID: map['PledgerID'],
-      UserID: map['UserID']
+      UserID: map['UserID'],
+      IsPublished: map["IsPublished"]
     );
   }
 
@@ -57,7 +60,8 @@ class Gift {
       'EventID': eventId,
       'Image' : image,
       'PledgerID':PledgerID??-1,
-      'UserID':UserID
+      'UserID':UserID,
+      'IsPublished' : IsPublished
     };
   }
  static Future<List<Gift>> getGiftList(int eventId) async {
@@ -74,7 +78,15 @@ class Gift {
     }
     return giftlist;
   }
+  static Future<void> deleteGiftsByEventId(int eventId) async {
+    final db = await Databaseclass();
 
+    // Define the query to delete all gifts with the given EventID
+    String query = "DELETE FROM Gifts WHERE EventID=${eventId}";
+
+    // Execute the query
+    await db.deleteData(query);
+  }
   static Future<bool> addGift(Gift gift) async {
     final db = await Databaseclass();
 
@@ -108,8 +120,8 @@ class Gift {
 
       String query = '''
       UPDATE Gifts SET Name='${gift.name}',Description='${gift.description}',
-      Category='${gift.category}',Price=${gift.price},Image='${gift.image}', PledgerID=${gift.PledgerID},Status=${status}
-       WHERE EventID=${gift.eventId} and ID=${gift.id}
+      Category='${gift.category}',Price=${gift.price},Image='${gift.image}', PledgerID=${gift.PledgerID},Status=${status},IsPublished=${gift.IsPublished}
+       WHERE EventID=${gift.eventId} and ID=${gift.id} 
       ''';
 
       int result = await db.updateData(query);
@@ -179,7 +191,7 @@ class Gift {
     List<Map<String, dynamic>> result = await db.readData(query);
 
 
-    Gift gift = Gift(name: result.first['Name'], category: result.first['Category'], status: "Available", description: result.first['Description'], price: result.first['Price'],eventId: eventid,PledgerID: -1,image: result.first['Image'],UserID: userid);
+    Gift gift = Gift(name: result.first['Name'], category: result.first['Category'], status: "Available", description: result.first['Description'], price: result.first['Price'],eventId: eventid,PledgerID: -1,image: result.first['Image'],UserID: userid,IsPublished: 0);
     return gift;
   }
 static Future<bool> CheckBarcode(String Barcode)async{

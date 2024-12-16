@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import '../Models/Gift.dart';
 import '../Views/GiftList.dart';
 import '../Models/Database.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
@@ -128,9 +129,17 @@ class EventController{
 
 deleteEvent(Event event) async {
     bool? success = await Event.deleteEvent(event.id!);
+    await DeleteEventGifts(event.id!);
     return success;
   }
+  DeleteEventGifts(int eventid)async{
+   List<Gift> gifts = await Gift.getGiftList(eventid);
+   await Gift.deleteGiftsByEventId(eventid);
+   for(var gift in gifts){
+     await db.syncGiftsDeletionToFirebase(gift.id!);
+   }
 
+  }
   GoToGiftList(int eventid, bool isOwner, Friend User, BuildContext context) async {
     Event? e = await Event.getEventById(eventid);
 

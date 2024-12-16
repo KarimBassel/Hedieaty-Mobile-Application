@@ -373,7 +373,7 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
       //await db.setupRealtimeListenersOptimized(user);
 
       //sync function returns a delay of 1 second
-      Future.delayed(Duration(seconds: await db.setupRealtimeListenersOptimized(user)),()async{
+      await Future.delayed(Duration(seconds: await db.setupRealtimeListenersOptimized(user)),()async{
         // Get the authenticated user object from the local database
         Friend authenticatedUser = await Friend.getUserObject(user);
         print(user);

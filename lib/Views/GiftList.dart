@@ -153,6 +153,22 @@ class _GiftListPageState extends State<GiftListPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming"&& gift.IsPublished==0)
+                            IconButton(onPressed: ()async{
+                              widget.event.giftlist=await controller.PublishGift(gift);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                              await controller.syncGiftsTableToFirebase();
+                            }, icon: Icon(Icons.publish),tooltip: "Publish",),
+                          if(widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming"&& gift.IsPublished==1)
+                            IconButton(onPressed: ()async{
+                              widget.event.giftlist=await controller.UnPublishGift(gift);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                              await controller.syncGiftsTableToFirebase();
+                            }, icon: Icon(Icons.unpublished),tooltip: "UnPublish",),
                           if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.edit),
@@ -254,27 +270,43 @@ class _GiftListPageState extends State<GiftListPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (widget.isOwner && gift.status == "Available"&& widget.event.status=="Upcoming")
+                          if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming"&& gift.IsPublished==0)
+                            IconButton(onPressed: ()async{
+                              widget.event.giftlist=await controller.PublishGift(gift);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                              await controller.syncGiftsTableToFirebase();
+                            }, icon: Icon(Icons.publish),tooltip: "Publish",),
+                          if(widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming"&& gift.IsPublished==1)
+                            IconButton(onPressed: ()async{
+                              widget.event.giftlist=await controller.UnPublishGift(gift);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                              await controller.syncGiftsTableToFirebase();
+                            }, icon: Icon(Icons.unpublished),tooltip: "UnPublish",),
+                          if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.edit),
-                                onPressed: ()async {
+                                onPressed: () async{
                                   _editGift(gift);
                                   if(mounted)
-                                  setState(() {
+                                    setState(() {
 
-                                  });
-                                }
+                                    });
+                                },tooltip: "Edit",
                             ),
-                          if (widget.isOwner && gift.status == "Available"&& widget.event.status=="Upcoming")
+                          if (widget.isOwner && gift.status == "Available" && widget.event.status=="Upcoming")
                             IconButton(
                                 icon: Icon(Icons.delete),
-                                onPressed: () async{
+                                onPressed: ()async {
                                   _deleteGift(gift);
                                   if(mounted)
-                                  setState(() {
+                                    setState(() {
 
-                                  });
-                                }
+                                    });
+                                },tooltip: "Delete"
                             ),
                         ],
                       ),

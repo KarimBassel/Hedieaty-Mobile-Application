@@ -79,6 +79,7 @@ CREATE TABLE Gifts (
   EventID INTEGER NOT NULL,
   PledgerID INTEGER DEFAULT -1,
   UserID INTEGER NOT NULL,
+  IsPublished INTEGER DEFAULT 0,
   FOREIGN KEY (EventID) REFERENCES Events(ID),
   FOREIGN KEY (PledgerID) REFERENCES Users(ID)
 );
@@ -332,7 +333,7 @@ CREATE TABLE Friends (
     // onChildAdded listener for the Gifts node
     giftsAddedSubscription = databaseRef.child('Gifts').onChildAdded.listen((event)async {
       var giftsData = event.snapshot.value;
-      if (giftsData is Map && (giftsData['UserID'] == userID || friendIds.contains(giftsData['UserID']))) {
+      if (giftsData is Map && (friendIds.contains(giftsData['UserID'])) && giftsData['IsPublished']==1) {
         await db!.insert('Gifts', {
           'ID': giftsData['ID'],
           'Name': giftsData['Name'],
@@ -343,7 +344,24 @@ CREATE TABLE Friends (
           'Status': giftsData['Status'] ?? 0,
           'EventID': giftsData['EventID'],
           'PledgerID': giftsData['PledgerID'] ?? -1,
-          'UserID': giftsData['UserID']
+          'UserID': giftsData['UserID'],
+          'IsPublished':giftsData['IsPublished']
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        print("Gift Added from Firebase to local");
+      }
+      else if(giftsData is Map && giftsData['UserID'] == userID){
+        await db!.insert('Gifts', {
+          'ID': giftsData['ID'],
+          'Name': giftsData['Name'],
+          'Description': giftsData['Description'],
+          'Category': giftsData['Category'],
+          'Price': giftsData['Price'],
+          'Image': giftsData['Image'],
+          'Status': giftsData['Status'] ?? 0,
+          'EventID': giftsData['EventID'],
+          'PledgerID': giftsData['PledgerID'] ?? -1,
+          'UserID': giftsData['UserID'],
+          'IsPublished':giftsData['IsPublished']
         }, conflictAlgorithm: ConflictAlgorithm.replace);
         print("Gift Added from Firebase to local");
       }
@@ -352,7 +370,7 @@ CREATE TABLE Friends (
     // onChildUpdated listener for the Gifts node
     giftsChangedSubscription=databaseRef.child('Gifts').onChildChanged.listen((event) async {
       var updatedGiftData = event.snapshot.value;
-      if (updatedGiftData is Map && (updatedGiftData['UserID'] == userID || friendIds.contains(updatedGiftData['UserID']))) {
+      if (updatedGiftData is Map && (friendIds.contains(updatedGiftData['UserID'])) && updatedGiftData['IsPublished']==1) {
         await db!.update('Gifts', {
           'ID': updatedGiftData['ID'],
           'Name': updatedGiftData['Name'],
@@ -363,7 +381,24 @@ CREATE TABLE Friends (
           'Status': updatedGiftData['Status'] ?? 0,
           'EventID': updatedGiftData['EventID'],
           'PledgerID': updatedGiftData['PledgerID'] ?? -1,
-          'UserID': updatedGiftData['UserID']
+          'UserID': updatedGiftData['UserID'],
+          'IsPublished':updatedGiftData['IsPublished']
+        }, where: 'ID = ?', whereArgs: [updatedGiftData['ID']]);
+        print("Gift updated from Firebase to local");
+      }
+      else if(updatedGiftData is Map && updatedGiftData['UserID'] == userID){
+        await db!.update('Gifts', {
+          'ID': updatedGiftData['ID'],
+          'Name': updatedGiftData['Name'],
+          'Description': updatedGiftData['Description'],
+          'Category': updatedGiftData['Category'],
+          'Price': updatedGiftData['Price'],
+          'Image': updatedGiftData['Image'],
+          'Status': updatedGiftData['Status'] ?? 0,
+          'EventID': updatedGiftData['EventID'],
+          'PledgerID': updatedGiftData['PledgerID'] ?? -1,
+          'UserID': updatedGiftData['UserID'],
+          'IsPublished':updatedGiftData['IsPublished']
         }, where: 'ID = ?', whereArgs: [updatedGiftData['ID']]);
         print("Gift updated from Firebase to local");
       }
@@ -393,7 +428,7 @@ CREATE TABLE Friends (
       }
     });
 
-    return 1;
+    return 3;
   }
 
 // fetch information fo newly added friend
@@ -444,7 +479,7 @@ CREATE TABLE Friends (
       final giftsMap = giftsSnapshot.value as Map;
       for (var entry in giftsMap.entries) {
         final gift = entry.value;
-        if (gift is Map && gift['UserID'] == friendID) {
+        if (gift is Map && gift['UserID'] == friendID && gift['IsPublished']==1) {
           await db.insert('Gifts', {
             'ID': gift['ID'],
             'Name': gift['Name'],
@@ -455,7 +490,8 @@ CREATE TABLE Friends (
             'Status': gift['Status'] ?? 0,
             'EventID': gift['EventID'],
             'PledgerID': gift['PledgerID'] ?? -1,
-            'UserID' : gift['UserID']
+            'UserID' : gift['UserID'],
+            'IsPublished':gift['IsPublished']
           }, conflictAlgorithm: ConflictAlgorithm.replace);
           print("Friend gift synced: GiftID = ${gift['ID']}");
         }

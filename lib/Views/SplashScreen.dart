@@ -1,14 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
+import 'package:hedieatymobileapplication/Models/Database.dart';
 import 'package:hedieatymobileapplication/Views/Home.dart';
 import 'package:hedieatymobileapplication/Views/SignIn.dart';
 import '../Models/Friend.dart';
 
 class SplashScreen extends StatelessWidget {
   final FriendController controller = FriendController();
+  final Databaseclass db = Databaseclass();
   @override
   Widget build(BuildContext context) {
+    db.initialize();
     return FutureBuilder<User?>(
       future: Future.value(FirebaseAuth.instance.currentUser),
       builder: (context, authSnapshot) {
@@ -29,11 +32,11 @@ class SplashScreen extends StatelessWidget {
                 );
               }
 
-              if (friendSnapshot.hasData) {
-                // Resetting realtime listeners
-                controller.AlreadyAuthenticatedUser(FirebaseAuth.instance.currentUser!.uid.hashCode);
-                return Home(User:  friendSnapshot.data!);
-              }
+              // if (friendSnapshot.hasData) {
+              //   // Resetting realtime listeners
+              //   controller.AlreadyAuthenticatedUser(FirebaseAuth.instance.currentUser!.uid.hashCode);
+              //   return Home(User:  friendSnapshot.data!);
+              // }
 
 
               return SignIn();

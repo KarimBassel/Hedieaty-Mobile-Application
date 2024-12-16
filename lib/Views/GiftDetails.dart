@@ -138,6 +138,7 @@ class _GiftDetailsState extends State<GiftDetails> {
         ),
       ),
       body: ListView(
+        key: Key('GiftDetailsListView'),
         padding: const EdgeInsets.all(20),
         children: [
           Container(
@@ -186,6 +187,7 @@ class _GiftDetailsState extends State<GiftDetails> {
               children: [
                 Expanded(
                   child: ElevatedButton(
+                    key: Key('PledgeButton'),
                     onPressed: isloading ? null :  ()async{
                       if(isOnline) {
                         isloading = true;

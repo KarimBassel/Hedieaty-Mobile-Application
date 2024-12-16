@@ -113,7 +113,8 @@ class GiftController{
         price: parsedPrice ?? 0,
         image: encodedImage ?? '',
         eventId: event.id,
-        UserID: event.userId!
+        UserID: event.userId!,
+        IsPublished: 0
       ));
 
       bool addGift = await Gift.addGift(Gift(
@@ -125,7 +126,8 @@ class GiftController{
         price: parsedPrice ?? 0,
         image: encodedImage ?? '',
         eventId: event.id,
-        UserID: event.userId!
+        UserID: event.userId!,
+        IsPublished: 0
       ));
 
       if (addGift) {
@@ -276,5 +278,19 @@ SyncGiftsTabletoFirebase()async{
 }
 
 
+PublishGift(Gift gift)async{
+    gift.IsPublished=1;
+    await Gift.updateGift(gift);
+    return await Gift.getGiftList(gift.eventId!);
+}
+  UnPublishGift(Gift gift)async{
+    gift.IsPublished=0;
+    await Gift.updateGift(gift);
+    return await Gift.getGiftList(gift.eventId!);
+  }
+
+  DeleteEventGifts(){
+
+  }
 
 }

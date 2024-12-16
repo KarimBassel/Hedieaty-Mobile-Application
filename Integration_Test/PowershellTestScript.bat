@@ -9,7 +9,7 @@ echo Running Flutter integration tests...
 start "" flutter test integration_test.dart
 
 REM Wait for a brief moment to allow the tests to start running
-timeout /t 180
+timeout /t 300
 
 REM Wait for the test to complete before stopping the recording
 echo Test completed, stopping screen recording...
