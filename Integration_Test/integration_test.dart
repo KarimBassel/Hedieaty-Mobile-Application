@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group('App Integration Tests', () {
-    testWidgets('Sign in test', (WidgetTester tester) async {
+    testWidgets('Integration Test 1', (WidgetTester tester) async {
 
         app.main();
 
@@ -21,7 +21,6 @@ void main() {
         await tester.ensureVisible(signInButton);
         await tester.tap(signInButton);
         await tester.pumpAndSettle(Duration(seconds: 10));
-        //expect(find.text('Create your own Event'), findsOneWidget);
         //Navigate to friend event list
         await tester.tap(find.text("Samehh"));
         await tester.pumpAndSettle(Duration(seconds: 5));

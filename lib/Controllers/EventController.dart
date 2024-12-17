@@ -3,10 +3,10 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../Models/Gift.dart';
 import '../Views/GiftList.dart';
-import '../Models/Database.dart';
+import '../Database.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
-import 'package:hedieatymobileapplication/Models/Authentication.dart';
+import 'package:hedieatymobileapplication/Authentication.dart';
 
 import '../Models/Event.dart';
 import '../Models/Friend.dart';
@@ -58,7 +58,7 @@ class EventController{
       );
       return;
     }
-
+    Navigator.of(context).pop();
     final DateTime today = DateTime.now();
     final status = selectedDate!.isBefore(today)
         ? 'Completed'
@@ -90,7 +90,7 @@ class EventController{
       showCustomSnackBar(context, "Event Updated Successfully", backgroundColor: Colors.green);
     }
     await db.syncEventsTableToFirebase();
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
     //loadEvents();
   }
 

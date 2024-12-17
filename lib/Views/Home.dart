@@ -4,7 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 import 'package:hedieatymobileapplication/Views/EventList.dart';
 import 'package:hedieatymobileapplication/Views/Profile.dart';
 import 'package:image_picker/image_picker.dart';
@@ -235,7 +235,7 @@ class _HomeState extends State<Home> {
 
 
             //await db!.syncFriendsTableToFirebase();
-            Navigator.of(context).pop();
+            //Navigator.of(context).pop();
           },
           child: Text('Save'),
         ),

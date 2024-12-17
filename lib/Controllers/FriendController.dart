@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:hedieatymobileapplication/FirebaseMessaging.dart';
-import 'package:hedieatymobileapplication/Models/Authentication.dart';
+import 'package:hedieatymobileapplication/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
-import '../Models/Database.dart';
+import '../Database.dart';
 import '../Models/Friend.dart';
 import '../Models/Gift.dart';
 import '../Views/Home.dart';
@@ -136,6 +136,8 @@ class FriendController {
 //Home
   AddFriendManual(TextEditingController PhoneController,Friend User,BuildContext context)async{
     final phone = PhoneController.text;
+    //pop first then process the request
+    Navigator.of(context).pop();
     if(User.PhoneNumber==phone){
       showCustomSnackBar(context,"Cannot Add Yourself");
       Friend updatedUser = await Friend.getUserObject(User.id!);
@@ -370,11 +372,7 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
       await FirebaseMessagingService().initNotifications(user);
 
       // Sync related rows to user from Firebase
-      //await db.setupRealtimeListenersOptimized(user);
-
-      //sync function returns a delay of 1 second
       await Future.delayed(Duration(seconds: await db.setupRealtimeListenersOptimized(user)),()async{
-        // Get the authenticated user object from the local database
         Friend authenticatedUser = await Friend.getUserObject(user);
         print(user);
 
@@ -391,7 +389,14 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
           ),
               (Route<dynamic> route) => false,
         );
+
       });
+      // //sync function returns a delay of 1 second
+      //   // Get the authenticated user object from the local database
+
+
+
+
 
     }
   }
@@ -437,11 +442,17 @@ NavigatetoSignIn(BuildContext context) {
   }
 
 
-SubmitSignUpForm(TextEditingController _nameController,TextEditingController _emailController,
-    TextEditingController _preferencesController,TextEditingController _phoneNumberController,
-    TextEditingController _passwordController,File? _selectedImage,BuildContext context,GlobalKey<FormState> _formKey)async{
+Future<void> SubmitSignUpForm(
+    TextEditingController _nameController,
+    TextEditingController _emailController,
+    TextEditingController _preferencesController,
+    TextEditingController _phoneNumberController,
+    TextEditingController _passwordController,
+    File? _selectedImage,
+    BuildContext context,
+    GlobalKey<FormState> _formKey) async {
 
-  if (_formKey.currentState!.validate()) {
+  if (_formKey.currentState!.validate() && _selectedImage!=null) {
     final String name = _nameController.text.trim();
     final String email = _emailController.text.trim();
     final String preferences = _preferencesController.text.trim();
@@ -452,29 +463,48 @@ SubmitSignUpForm(TextEditingController _nameController,TextEditingController _em
     final imageBytes = await File(image!.path).readAsBytes();
     String encodedImage = base64Encode(imageBytes);
 
-    if (await Friend.getUserByPhoneNumber(phoneNumber)) {
-  showCustomSnackBar(context, "Phone number already registered");
-  }
-    else if(_selectedImage==null){
-      showCustomSnackBar(context, "No Image Selected");
-    }else {
+    // Check if the phone number & email already exists in the Firebase Realtime Database
+    final databaseRef = FirebaseDatabase.instance.ref('Users');
+    final phoneSnapshot = await databaseRef.orderByChild('PhoneNumber').equalTo(phoneNumber).get();
+    final Emailsnapshot = await databaseRef.orderByChild('Email').equalTo(email).get();
+    if (phoneSnapshot.exists) {
+      if(Emailsnapshot.exists)showCustomSnackBar(context, "Email Already Registered");
+      showCustomSnackBar(context, "Phone number already registered");
+    }
+    else if(Emailsnapshot.exists){
+      showCustomSnackBar(context, "Email Already Registered");
+    }
+    else {
+      try {
+        final userRecord = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+        if (userRecord.isNotEmpty) {
+          showCustomSnackBar(context, "Email already registered");
+        } else if (_selectedImage == null) {
+          showCustomSnackBar(context, "No Image Selected");
+        } else {
+          // Sign up using Firebase Authentication
+          dynamic signupstate = await auth.signUpWithEmailPassword(
+              name, email, preferences, phoneNumber, password, encodedImage, context
+          );
 
-  //Sign up using Firebase Authentication
-  dynamic signupstate = auth.signUpWithEmailPassword(name, email, preferences, phoneNumber, password, encodedImage,context);
-  if(signupstate!=null) {
-    showCustomSnackBar(context, "Account Registered Successfully!",
-        backgroundColor: Colors.green);
-    _nameController.clear();
-    _emailController.clear();
-    _preferencesController.clear();
-    _phoneNumberController.clear();
-    _passwordController.clear();
-    image.delete();
+          if (signupstate != null) {
+            showCustomSnackBar(context, "Account Registered Successfully!", backgroundColor: Colors.green);
+            _nameController.clear();
+            _emailController.clear();
+            _preferencesController.clear();
+            _phoneNumberController.clear();
+            _passwordController.clear();
+            image.delete();
+          }
+        }
+      } catch (e) {
+        //showCustomSnackBar(context, "Error checking email: $e");
+      }
+    }
   }
-  //Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Signup()));
-  }
+  if(_selectedImage==null)showCustomSnackBar(context, "No Image Selected");
 }
-}
+
 
 
 

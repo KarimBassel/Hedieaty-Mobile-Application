@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 import 'package:hedieatymobileapplication/Models/Event.dart';
 import 'Gift.dart';
 

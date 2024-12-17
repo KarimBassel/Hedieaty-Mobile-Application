@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Controllers/EventController.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 import 'package:hedieatymobileapplication/Models/Friend.dart';
 import 'package:hedieatymobileapplication/Views/GiftList.dart';
 import '../Models/Event.dart';
@@ -23,7 +23,6 @@ class _EventListPageState extends State<EventListPage> {
   late StreamSubscription<DatabaseEvent> EventsSubscription;
   String _sortCriterion = 'Name';
   List<Event> events=[];
-  //Databaseclass db = Databaseclass();
 
   Future<void> fetchEventsFromLocalDb() async {
     await Future.delayed(const Duration(seconds: 1));

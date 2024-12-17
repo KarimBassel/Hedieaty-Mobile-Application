@@ -167,13 +167,12 @@ CREATE TABLE Friends (
 
 
 
-// Optimized listener to get necessary rows only
-  setupRealtimeListenersOptimized(int userID) async {
+setupRealtimeListenersOptimized(int userID) async {
     Database? db = await MyDataBase;
     final databaseRef = FirebaseDatabase.instance.ref();
 
     final List<int> friendIds = [];
-
+    int delay;
     final friendsDataSnapshot = await databaseRef.child('Friends').get();
     if (friendsDataSnapshot.value is List) {
       final friendsData = friendsDataSnapshot.value as List;
@@ -209,7 +208,7 @@ CREATE TABLE Friends (
           }, conflictAlgorithm: ConflictAlgorithm.replace);
 
           print("New friend detected and cached: FriendID = $friendID");
-          await fetchAndSyncFriendData(friendID, db, databaseRef);
+          //await fetchAndSyncFriendData(friendID, db, databaseRef);
         }
       }
     });
@@ -427,12 +426,11 @@ CREATE TABLE Friends (
         print("Barcode gift Added from firebase to local");
       }
     });
-
-    return 3;
+    return 2;
   }
 
 // fetch information fo newly added friend
-  Future<void> fetchAndSyncFriendData(int friendID, Database db, DatabaseReference databaseRef) async {
+Future<void>  fetchAndSyncFriendData(int friendID, Database db, DatabaseReference databaseRef) async {
     // Fetch and sync the friend's user details
     final userSnapshot = await databaseRef.child('Users/$friendID').get();
     if (userSnapshot.value is Map) {
@@ -497,6 +495,7 @@ CREATE TABLE Friends (
         }
       }
     }
+
   }
 
 

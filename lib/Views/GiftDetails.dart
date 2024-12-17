@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Controllers/GiftController.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'GiftList.dart';
@@ -46,11 +46,14 @@ class _GiftDetailsState extends State<GiftDetails> {
 
     await Future.delayed(const Duration(seconds: 1));
     Gift? g = await controller.FetchGiftByID(widget.gift.id!);
+
     widget.gift=g!;
     widget.isPledged = (widget.gift.status=="Available")?false:true;
     widget.isPledger = (widget.gift.PledgerID==widget.User!.id);
     _statusController.text = widget.isPledged ? 'Pledged' : 'Available';
 
+
+    if(mounted)setState(() {});
   }
 
 

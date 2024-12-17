@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 import 'package:image_picker/image_picker.dart';
 import '../Controllers/GiftController.dart';
 import '../Models/Gift.dart';
@@ -133,7 +133,7 @@ class _GiftListPageState extends State<GiftListPage> {
                     child: ListTile(
                       leading: gift.image != null
                           ?  CircleAvatar(
-                        radius: 25,
+                        radius: 22,
                         backgroundImage: MemoryImage(base64Decode(gift.image!.split(',').last)),
                       ) : Icon(Icons.image, size: 50),
                       title: Text(gift.name, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -250,7 +250,7 @@ class _GiftListPageState extends State<GiftListPage> {
                     child: ListTile(
                       leading: gift.image != null
                           ?  CircleAvatar(
-                        radius: 25,
+                        radius: 22,
                         backgroundImage: MemoryImage(base64Decode(gift.image!.split(',').last)),
                       ) : Icon(Icons.image, size: 50),
                       title: Text(gift.name, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -331,7 +331,6 @@ class _GiftListPageState extends State<GiftListPage> {
               FloatingActionButton(
                       onPressed: ()async{
               _addGift();
-              //await controller.syncGiftsTableToFirebase();
               if(mounted)
               setState(() {
 
@@ -417,12 +416,19 @@ class _GiftListPageState extends State<GiftListPage> {
                   ),
                   TextFormField(
                     controller: categoryController,
-                    decoration: InputDecoration(labelText: 'Category'),
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      counterText: '', // To hide the default character counter
+                    ),
+                    maxLength: 10, // Restricts the input to 10 characters
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter a category';
                       }
-                      return null;
+                      if (value.length > 10) {
+                        return 'Category cannot exceed 10 characters'; // Error message if length is more than 10
+                      }
+                      return null; // Valid input
                     },
                   ),
                   TextFormField(
@@ -468,14 +474,34 @@ class _GiftListPageState extends State<GiftListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                if (_formKey.currentState?.validate() == true) {
+                if (_formKey.currentState?.validate()==true && imageFile!=null) {
                   await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context,);
+                  //controller.showCustomSnackBar(context, "Gift Added/Updated Successfully", backgroundColor: Colors.green);
                   widget.event.giftlist = await controller.GetGiftList(widget.event.id!);
                   if (mounted) {
                     setState(() {});
                   }
+                  CircularProgressIndicator();
                   await controller.syncGiftsTableToFirebase();
                 }
+                if(imageFile==null)
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text('No Image Selected'),
+                        content: Text('Please select an image for the gift.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
               },
               child: Text('Save'),
             ),

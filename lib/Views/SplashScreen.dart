@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 import 'package:hedieatymobileapplication/Views/Home.dart';
 import 'package:hedieatymobileapplication/Views/SignIn.dart';
 import '../Models/Friend.dart';

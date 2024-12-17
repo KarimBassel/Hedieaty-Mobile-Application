@@ -3,11 +3,10 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
-import 'package:hedieatymobileapplication/Models/Authentication.dart';
 import 'package:image_picker/image_picker.dart';
 import 'SignIn.dart';
 import '../Models/Friend.dart';
-import 'package:hedieatymobileapplication/Models/Database.dart';
+import 'package:hedieatymobileapplication/Database.dart';
 
 class Signup extends StatefulWidget {
   @override
@@ -149,29 +148,36 @@ class _SignUpState extends State<Signup> {
 
           SizedBox(height: 16),
               // Preferences Field
-          TextFormField(
-            controller: _preferencesController,
-            decoration: InputDecoration(
-              labelText: 'Preferences',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
+              TextFormField(
+                controller: _preferencesController,
+                decoration: InputDecoration(
+                  labelText: 'Preferences',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(color: Colors.red),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Preferences is required';
+                  }
+                  return null;
+                },
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
-                borderSide: BorderSide(color: Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
-                borderSide: BorderSide(color: Colors.blue),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
-                borderSide: BorderSide(color: Colors.red),
-              ),
-            ),
-          ),
 
-          SizedBox(height: 16),
+
+              SizedBox(height: 16),
               // Phone Number Field
           TextFormField(
             controller: _phoneNumberController,
@@ -270,8 +276,8 @@ class _SignUpState extends State<Signup> {
               ElevatedButton(
                 onPressed:()async{
                   //_submitForm(context);
-                  if(_selectedImage==null)showCustomSnackBar(context, "No Image Selected");
-                  else await controller.SubmitSignUpForm(_nameController, _emailController, _preferencesController, _phoneNumberController, _passwordController, _selectedImage, context, _formKey);
+                  //if(_selectedImage==null)showCustomSnackBar(context, "No Image Selected");
+                  await controller.SubmitSignUpForm(_nameController, _emailController, _preferencesController, _phoneNumberController, _passwordController, _selectedImage, context, _formKey);
 
                 } ,
                 style: ElevatedButton.styleFrom(

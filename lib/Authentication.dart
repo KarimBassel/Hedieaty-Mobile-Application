@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'friend.dart';
+import 'Models/friend.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -64,7 +64,7 @@ class AuthService {
 
       return userCredential.user;
     } catch (e) {
-      showCustomSnackBar(context, "$e");
+      //showCustomSnackBar(context, "$e");
       print("Sign-up error: $e");
       return null;
     }
@@ -92,7 +92,7 @@ class AuthService {
         return null;
       }
     } catch (e) {
-      showCustomSnackBar(context, "$e");
+      //showCustomSnackBar(context, "$e");
       print('Error during sign-in: $e');
       return null;
     }

@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
-import '../Models/Authentication.dart';
-import '../Models/Database.dart';
+import '../Authentication.dart';
+import '../Database.dart';
 import '../Models/Event.dart';
 import '../Models/Friend.dart';
 import '../Models/Gift.dart';
@@ -98,6 +98,7 @@ class GiftController{
       final imageBytes = await File(imageFile!.path).readAsBytes();
       encodedImage = base64Encode(imageBytes);
     }
+    Navigator.of(context).pop();
     int parsedPrice = double.tryParse(priceController.text)?.toInt() ?? 0;
     if (gift == null) {
       int giftId = await generateUniqueGiftId();
@@ -130,11 +131,11 @@ class GiftController{
         IsPublished: 0
       ));
 
-      if (addGift) {
-        showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
-      } else {
-        showCustomSnackBar(context, "Failed to Add Gift", backgroundColor: Colors.red);
-      }
+      // if (addGift) {
+      //   showCustomSnackBar(context, "Gift Added Successfully", backgroundColor: Colors.green);
+      // } else {
+      //   showCustomSnackBar(context, "Failed to Add Gift", backgroundColor: Colors.red);
+      // }
     } else {
       gift.name = nameController.text;
       gift.category = categoryController.text;
@@ -145,15 +146,14 @@ class GiftController{
 
       bool updateStatus = await Gift.updateGift(gift);
 
-      if (updateStatus) {
-        showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
-      } else {
-        showCustomSnackBar(context, "Failed to Update Gift", backgroundColor: Colors.red);
-      }
+      // if (updateStatus) {
+      //   showCustomSnackBar(context, "Gift Updated Successfully", backgroundColor: Colors.green);
+      // } else {
+      //   showCustomSnackBar(context, "Failed to Update Gift", backgroundColor: Colors.red);
+      // }
     }
 
-    event.giftlist = await Gift.getGiftList(event.id!);
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
   GetGiftList(int eventid)async{
     return await Gift.getGiftList(eventid);
