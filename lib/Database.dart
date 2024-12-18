@@ -366,42 +366,56 @@ setupRealtimeListenersOptimized(int userID) async {
       }
     });
 
-    // onChildUpdated listener for the Gifts node
-    giftsChangedSubscription=databaseRef.child('Gifts').onChildChanged.listen((event) async {
+    giftsChangedSubscription = databaseRef.child('Gifts').onChildChanged.listen((event) async {
       var updatedGiftData = event.snapshot.value;
-      if (updatedGiftData is Map && (friendIds.contains(updatedGiftData['UserID'])) && updatedGiftData['IsPublished']==1) {
-        await db!.update('Gifts', {
-          'ID': updatedGiftData['ID'],
-          'Name': updatedGiftData['Name'],
-          'Description': updatedGiftData['Description'],
-          'Category': updatedGiftData['Category'],
-          'Price': updatedGiftData['Price'],
-          'Image': updatedGiftData['Image'],
-          'Status': updatedGiftData['Status'] ?? 0,
-          'EventID': updatedGiftData['EventID'],
-          'PledgerID': updatedGiftData['PledgerID'] ?? -1,
-          'UserID': updatedGiftData['UserID'],
-          'IsPublished':updatedGiftData['IsPublished']
-        }, where: 'ID = ?', whereArgs: [updatedGiftData['ID']]);
-        print("Gift updated from Firebase to local");
-      }
-      else if(updatedGiftData is Map && updatedGiftData['UserID'] == userID){
-        await db!.update('Gifts', {
-          'ID': updatedGiftData['ID'],
-          'Name': updatedGiftData['Name'],
-          'Description': updatedGiftData['Description'],
-          'Category': updatedGiftData['Category'],
-          'Price': updatedGiftData['Price'],
-          'Image': updatedGiftData['Image'],
-          'Status': updatedGiftData['Status'] ?? 0,
-          'EventID': updatedGiftData['EventID'],
-          'PledgerID': updatedGiftData['PledgerID'] ?? -1,
-          'UserID': updatedGiftData['UserID'],
-          'IsPublished':updatedGiftData['IsPublished']
-        }, where: 'ID = ?', whereArgs: [updatedGiftData['ID']]);
-        print("Gift updated from Firebase to local");
+      if (updatedGiftData is Map) {
+        // Gift published by a friend
+        if (updatedGiftData['IsPublished'] == 1 && friendIds.contains(updatedGiftData['UserID'])) {
+          await db!.insert('Gifts', {
+            'ID': updatedGiftData['ID'],
+            'Name': updatedGiftData['Name'],
+            'Description': updatedGiftData['Description'],
+            'Category': updatedGiftData['Category'],
+            'Price': updatedGiftData['Price'],
+            'Image': updatedGiftData['Image'],
+            'Status': updatedGiftData['Status'] ?? 0,
+            'EventID': updatedGiftData['EventID'],
+            'PledgerID': updatedGiftData['PledgerID'] ?? -1,
+            'UserID': updatedGiftData['UserID'],
+            'IsPublished': updatedGiftData['IsPublished']
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          print("Gift updated from Firebase to local (Published)");
+
+        }
+        // Gift unpublished (delete it from other users' local databases)
+        else if (updatedGiftData['IsPublished'] == 0 && friendIds.contains(updatedGiftData['UserID'])) {
+          await db!.delete(
+            'Gifts',
+            where: 'ID = ? AND UserID = ?',
+            whereArgs: [updatedGiftData['ID'], updatedGiftData['UserID']],
+          );
+          print("Gift unpublished, deleted from other users' local DB");
+        }
+        // If the gift belongs to the current user, update it regardless of published state
+        else if (updatedGiftData['UserID'] == userID) {
+          await db!.insert('Gifts', {
+            'ID': updatedGiftData['ID'],
+            'Name': updatedGiftData['Name'],
+            'Description': updatedGiftData['Description'],
+            'Category': updatedGiftData['Category'],
+            'Price': updatedGiftData['Price'],
+            'Image': updatedGiftData['Image'],
+            'Status': updatedGiftData['Status'] ?? 0,
+            'EventID': updatedGiftData['EventID'],
+            'PledgerID': updatedGiftData['PledgerID'] ?? -1,
+            'UserID': updatedGiftData['UserID'],
+            'IsPublished': updatedGiftData['IsPublished']
+          }, conflictAlgorithm: ConflictAlgorithm.replace);
+          print("Gift updated from Firebase to local (Owner's Gift)");
+        }
       }
     });
+
 
     // onChildRemoved listener for the Gifts node
     giftsRemovedSubscription=databaseRef.child('Gifts').onChildRemoved.listen((event) async {
@@ -426,7 +440,7 @@ setupRealtimeListenersOptimized(int userID) async {
         print("Barcode gift Added from firebase to local");
       }
     });
-    return 2;
+    return 10;
   }
 
 // fetch information fo newly added friend

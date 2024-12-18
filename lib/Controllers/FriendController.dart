@@ -134,58 +134,118 @@ class FriendController {
     }
   }
 //Home
-  AddFriendManual(TextEditingController PhoneController,Friend User,BuildContext context)async{
-    final phone = PhoneController.text;
-    //pop first then process the request
-    Navigator.of(context).pop();
-    if(User.PhoneNumber==phone){
-      showCustomSnackBar(context,"Cannot Add Yourself");
-      Friend updatedUser = await Friend.getUserObject(User.id!);
-      return updatedUser.friendlist;
-    }
-    else if(await Friend.checkFriendshipExists(User.id!,phone)){
-      showCustomSnackBar(context,"Friendship already exists");
-      Friend updatedUser = await Friend.getUserObject(User.id!);
-      return updatedUser.friendlist;
-    }
-    else{
-      int generatedid = await generateUniqueFriendId();
-      dynamic newfriend = await Friend.registerFriend(User.id!, phone,generatedid);
-      //returned false from search query of the phone number
-      if(newfriend is bool){
-        showCustomSnackBar(context,"User Not Found");
+  AddFriendManual(TextEditingController PhoneController, Friend User, BuildContext context) async {
+    try {
+      final phone = PhoneController.text;
+
+      // Check if the phone number matches the user's phone number
+      if (User.PhoneNumber == phone) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        //showCustomSnackBar(context, "Cannot Add Yourself");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cannot Add Yourself'),
+            duration: Duration(seconds: 5),
+          ),
+        );
         Friend updatedUser = await Friend.getUserObject(User.id!);
         return updatedUser.friendlist;
       }
-      else{
-        //HEEEEEEEEREEEEEEEEEEEEEEEEEEEEEEEEEE
-        await db.syncFriendsTableToFirebase();
-        //to get information of new friend added (events+gifts)
-        //necessary for waiting for friend info to be cached locally
-        await db.cancelRealtimeListeners();
-        await db.setupRealtimeListenersOptimized(User.id!);
 
-        //await Future.delayed(Duration(seconds:await db.setupRealtimeListenersOptimized(User.id!)),()async{
+      // Check if the friendship already exists
+      else if (await Friend.checkFriendshipExists(User.id!, phone)) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Friendship already exists'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+        Friend updatedUser = await Friend.getUserObject(User.id!);
+        return updatedUser.friendlist;
+      }
+
+      // Proceed to add a new friend
+      else {
+        int generatedid = await generateUniqueFriendId();
+        dynamic newfriend = await Friend.registerFriend(User.id!, phone, generatedid);
+
+        // If the user was not found
+        if (newfriend is bool) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('User not found'),
+              duration: Duration(seconds: 5),
+            ),
+          );
           Friend updatedUser = await Friend.getUserObject(User.id!);
-          User=updatedUser!;
+          return updatedUser.friendlist;
+        } else {
+          // Sync friends table to Firebase and set up listeners
+          await db.syncFriendsTableToFirebase();
+          await db.cancelRealtimeListeners();
+          await db.setupRealtimeListenersOptimized(User.id!);
+
+          // Wait for the listeners to set up, then update user data
+          Friend updatedUser = await Friend.getUserObject(User.id!);
+          User = updatedUser!;
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Friendship Added Successfully'),
+              duration: Duration(seconds: 5),
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Refresh Home Page'),
+              duration: Duration(seconds: 5),
+            ),
+          );
+
           return User.friendlist;
-        //});
+        }
+      }
+    } catch (e) {
+      // Handle any errors that occur during the process
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: $e'),
+          duration: Duration(seconds: 5),
+        ),
+      );
+      return User.friendlist;  // Return the original friend list in case of error
+    }
+  }
 
-
-  }
-  }
-  }
 
   Future<int> generateUniqueFriendId() async {
     DatabaseReference friendsRef = FirebaseDatabase.instance.ref("Friends");
     DataSnapshot snapshot = await friendsRef.get();
     List<int> existingFriendIds = [];
 
-    if (snapshot.exists && snapshot.value is Map) {
-      Map<String, dynamic> friendsMap = Map<String, dynamic>.from(snapshot.value as Map);
-      existingFriendIds = friendsMap.keys.map((key) => int.tryParse(key) ?? 0).toList();
+    if (snapshot.exists) {
+      if (snapshot.value is Map) {
+        // If snapshot.value is a Map, process as a Map
+        Map<String, dynamic> friendsMap = Map<String, dynamic>.from(snapshot.value as Map);
+        existingFriendIds = friendsMap.keys.map((key) => int.tryParse(key) ?? 0).toList();
+      } else if (snapshot.value is List) {
+        // If snapshot.value is a List, process as a List
+        List<dynamic> friendsList = List<dynamic>.from(snapshot.value as List);
+        existingFriendIds = friendsList
+            .asMap()
+            .entries
+            .where((entry) => entry.key != null)
+            .map((entry) => int.tryParse(entry.key.toString()) ?? 0)
+            .toList();
+      } else {
+        print("Snapshot contains unknown data type: ${snapshot.value.runtimeType}");
+      }
     } else {
-      print("No valid map data found or snapshot is empty");
+      print("Snapshot does not exist or is empty.");
     }
 
     int index = 1;
@@ -196,6 +256,7 @@ class FriendController {
 
     return index;
   }
+
 
 
   void showCustomSnackBar(BuildContext context, String message, {Color backgroundColor = Colors.red}) {
@@ -356,26 +417,34 @@ PopEditCard(BuildContext context)async{
   Navigator.of(context).pop();
 }
 
-SubmitSignInForm(TextEditingController _EmailController, TextEditingController _passwordController, GlobalKey<FormState> _formKey, BuildContext context,) async {
-  if (_formKey.currentState!.validate()) {
-    final String Email = _EmailController.text.trim();
-    final String password = _passwordController.text.trim();
+  SubmitSignInForm(TextEditingController _EmailController, TextEditingController _passwordController, GlobalKey<FormState> _formKey, BuildContext context,) async {
+    if (_formKey.currentState!.validate()) {
+      final String Email = _EmailController.text.trim();
+      final String password = _passwordController.text.trim();
 
-    // Sign in using Firebase Authentication
-    dynamic user = await auth.signInWithEmailAndPassword(Email, password,context);
+      try {
+        // Attempt to sign in using Firebase Authentication
+        dynamic user = await auth.signInWithEmailAndPassword(Email, password, context);
 
-    // If user not found, show an error snackbar
-    if (user == null) {
-      showCustomSnackBar(context, "Incorrect Email or Password");
-    } else {
-      // Save the FCM token for the current user
-      await FirebaseMessagingService().initNotifications(user);
+        if (user == null) {
+          // Show error snackbar if authentication fails
+          showCustomSnackBar(context, "Incorrect Email or Password");
+          return;
+        }
 
-      // Sync related rows to user from Firebase
-      await Future.delayed(Duration(seconds: await db.setupRealtimeListenersOptimized(user)),()async{
+        // Save the FCM token for the authenticated user
+        await FirebaseMessagingService().initNotifications(user);
+
+        // Add a delay based on the setupRealtimeListenersOptimized result
+        int delayInSeconds = await db.setupRealtimeListenersOptimized(user);
+        //wait till information fetched from firebase to local database
+        print("Starting 10-second delay...");
+        await Future.delayed(Duration(seconds: delayInSeconds));
+        print("Delay completed. Fetching user object...");
+          // Retrieve the authenticated user object
         Friend authenticatedUser = await Friend.getUserObject(user);
-        print(user);
 
+        // Navigate to the Home screen and clear navigation stack
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
@@ -389,18 +458,14 @@ SubmitSignInForm(TextEditingController _EmailController, TextEditingController _
           ),
               (Route<dynamic> route) => false,
         );
-
-      });
-      // //sync function returns a delay of 1 second
-      //   // Get the authenticated user object from the local database
-
-
-
-
-
+      } catch (e) {
+        // Log error and show a snackbar
+        print("Error during sign-in: $e");
+        showCustomSnackBar(context, "Something went wrong. Please try again.");
+      }
     }
   }
-}
+
 
 
 IsUserFound(TextEditingController emailcont,TextEditingController passcont,BuildContext context)async{
@@ -462,11 +527,13 @@ Future<void> SubmitSignUpForm(
 
     final imageBytes = await File(image!.path).readAsBytes();
     String encodedImage = base64Encode(imageBytes);
-
+    print(phoneNumber);
+    print(email);
     // Check if the phone number & email already exists in the Firebase Realtime Database
     final databaseRef = FirebaseDatabase.instance.ref('Users');
     final phoneSnapshot = await databaseRef.orderByChild('PhoneNumber').equalTo(phoneNumber).get();
     final Emailsnapshot = await databaseRef.orderByChild('Email').equalTo(email).get();
+    print(phoneSnapshot.value);
     if (phoneSnapshot.exists) {
       if(Emailsnapshot.exists)showCustomSnackBar(context, "Email Already Registered");
       showCustomSnackBar(context, "Phone number already registered");
@@ -506,7 +573,9 @@ Future<void> SubmitSignUpForm(
 }
 
 
-
+  refreshFriendsList(int userid) async {
+    return await Friend.getUserObject(userid);
+  }
 
 
 

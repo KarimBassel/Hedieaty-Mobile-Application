@@ -50,6 +50,7 @@ class _GiftListPageState extends State<GiftListPage> {
     final DatabaseReference _giftsRef = FirebaseDatabase.instance.ref('Gifts');
     _giftsSubscription=_giftsRef.orderByChild('EventID').equalTo(widget.event.id).onValue.listen((event)async {
       if (event.snapshot.exists) {
+        //await controller.RemoveUnPublishedGifts()
         await fetchGiftsFromLocalDb();
       }
     });

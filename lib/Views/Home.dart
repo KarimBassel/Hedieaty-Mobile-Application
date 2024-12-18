@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:hedieatymobileapplication/Controllers/FriendController.dart';
 import 'package:hedieatymobileapplication/Database.dart';
@@ -41,23 +42,16 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-
+    filteredfriends = widget.User.friendlist;
     return Scaffold(
-      appBar:  AppBar(
-
+      appBar: AppBar(
         title: Row(
           children: [
             IconButton(
               icon: Icon(Icons.account_circle),
               tooltip: "My Profile",
               iconSize: 35,
-              onPressed: ()async {
-                // Friend? uptodate = await Friend.getUserObject(widget.User.id!);
-                // widget.User=uptodate!;
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => Profile(User:widget.User)),
-                // );
+              onPressed: () async {
                 await controller.ProfileIconTap(widget.User.id!, context);
               },
             ),
@@ -66,19 +60,27 @@ class _HomeState extends State<Home> {
               child: SizedBox(
                 height: 40,
                 child: SearchBar(
-                  onChanged: (val){
+                  onChanged: (val) {
                     _filterFriends(val);
                   },
                   padding: const MaterialStatePropertyAll<EdgeInsets>(
                     EdgeInsets.symmetric(horizontal: 16.0),
                   ),
-
                   leading: const Icon(
                     Icons.search,
-
                   ),
                 ),
               ),
+            ),
+            IconButton(
+              icon: Icon(Icons.refresh),
+              tooltip: "Refresh Friends List",
+              onPressed: () async {
+                widget.User = await controller.refreshFriendsList(widget.User.id!);
+                setState(() {
+                  filteredfriends = widget.User.friendlist;
+                });
+              },
             ),
           ],
         ),
@@ -90,10 +92,7 @@ class _HomeState extends State<Home> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: ()async {
-                // widget.User = await Friend.getUserObject(widget.User.id!);
-                // Navigator.push(context, MaterialPageRoute(
-                //     builder: (context) => EventListPage(isOwner: true,User: widget.User,)));
+              onPressed: () async {
                 await controller.CreateEventOnTap(widget.User.id!, context);
               },
               style: ElevatedButton.styleFrom(
@@ -115,49 +114,46 @@ class _HomeState extends State<Home> {
             ),
           ),
           SizedBox(height: 20),
-
-          ...filteredfriends!.map((friend) =>
-              Column(
-                children: [
-                  ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: MemoryImage(base64Decode(friend.image!.split(',').last)),
-                    ),
-                    title: Text(
-                      friend.name!,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
+          if(filteredfriends!=null)
+          ...filteredfriends!.map((friend) => Column(
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundImage:
+                  MemoryImage(base64Decode(friend.image!.split(',').last)),
+                ),
+                title: Text(
+                  friend.name!,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding:
+                      EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
                         color: Colors.orangeAccent,
                         borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Upcoming Events: ${friend.upev??0}',
+                      ),
+                      child: Text(
+                        'Upcoming Events: ${friend.upev ?? 0}',
                         style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white,
-                          fontWeight: FontWeight.bold
-                        ),
-                        ),
-                        ),
-                      ],
+                            fontSize: 13,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    onTap: () async{
-                      // friend = await Friend.getUserObject(friend.id!);
-                      // Navigator.push(context, MaterialPageRoute(
-                      //     builder: (context) =>
-                      //         EventListPage(isOwner: false,User: widget.User,friend:friend)));
-                      await controller.FriendCardOnTap(friend.id!, widget.User, context);
-                    },
-                  ),
-                  Divider(),
-                ],
-              )),
+                  ],
+                ),
+                onTap: () async {
+                  await controller.FriendCardOnTap(
+                      friend.id!, widget.User, context);
+                },
+              ),
+              Divider(),
+            ],
+          )),
         ],
       ),
       floatingActionButton: PopupMenuButton<String>(
@@ -178,71 +174,100 @@ class _HomeState extends State<Home> {
           PopupMenuItem(
             value: 'manual',
             child: Text('Add Friend Manually'),
-            onTap: showFriendDialogue,
+            onTap: (){
+              showFriendDialogue();
+
+          },
           ),
           PopupMenuItem(
             value: 'contacts',
             child: Text('Add Friend from Contacts'),
             onTap: () async {
-                  filteredfriends = await controller.AddFriendFromContacts(_contactPicker, widget.User, context);
-                  Future.delayed(Duration(seconds: 5),(){
-                    setState(() {
-
-                    });
-                  });
-
+              filteredfriends = await controller.AddFriendFromContacts(
+                  _contactPicker, widget.User, context);
+              Future.delayed(Duration(seconds: 5), () {
+                setState(() {});
+              });
             },
           ),
         ],
-      )
-
-
-
+      ),
     );
   }
 
-  void showFriendDialogue(){
-  final PhoneController = TextEditingController();
 
-  
-  showDialog(context: context, builder: (BuildContext context){
-    return AlertDialog(
-      title: Text("Add Friend Manually"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            keyboardType: TextInputType.number,
-            controller: PhoneController,
-            decoration: InputDecoration(labelText: 'Enter Phone Number'),
-          ),
 
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
+  void showFriendDialogue() {
+    final PhoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Builder(
+          builder: (BuildContext innerContext) { // Use a new context for the dialog
+            return AlertDialog(
+              title: Text("Add Friend Manually"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    keyboardType: TextInputType.phone,
+                    controller: PhoneController,
+                    decoration: InputDecoration(
+                      labelText: 'Enter Phone Number',
+                      prefixText: '+20 ', // Add the constant prefix here
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly, // Only allow digits after +20
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(); // Close the dialog when Cancel is pressed
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    // Show a snackbar within the dialog
+                    ScaffoldMessenger.of(innerContext).showSnackBar(
+                      SnackBar(
+                        content: Text('Please wait while we add the friend...'),
+                        duration: Duration(seconds: 5), // Show during the async operation
+                      ),
+                    );
+
+                    // Perform the async operation
+                    filteredfriends = await controller.AddFriendManual(
+                      PhoneController,
+                      widget.User,
+                      innerContext,
+                    );
+
+                    // After the operation, close the dialog and update UI
+                    if (mounted) {
+                      setState(() {});
+                    }
+
+
+                    // Close the dialog after a short delay
+                    await Future.delayed(Duration(seconds: 1));
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text('Save'),
+                ),
+              ],
+            );
           },
-          child: Text('Cancel'),
-        ),
-        TextButton(
-           onPressed: ()async {
-             filteredfriends = await controller.AddFriendManual(PhoneController, widget.User, context);
-               setState(() {
-
-               });
-
-
-            //await db!.syncFriendsTableToFirebase();
-            //Navigator.of(context).pop();
-          },
-          child: Text('Save'),
-        ),
-      ],
+        );
+      },
     );
-  });
-}
+  }
+
+
   void _filterFriends(String query) {
     final filtered = widget.User.friendlist!.where((friend) {
       return friend.name.toLowerCase().contains(query.toLowerCase());

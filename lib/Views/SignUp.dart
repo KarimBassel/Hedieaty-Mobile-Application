@@ -179,39 +179,46 @@ class _SignUpState extends State<Signup> {
 
               SizedBox(height: 16),
               // Phone Number Field
-          TextFormField(
-            controller: _phoneNumberController,
-            decoration: InputDecoration(
-              labelText: 'Phone Number',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
+              TextFormField(
+                controller: _phoneNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  prefixText: '+20 ', // Add +20 as the prefix
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                    borderSide: BorderSide(color: Colors.red),
+                  ),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Phone Number is required';
+                  }
+                  // Remove the +20 from the start for validation
+                  String phoneWithoutCode = value.replaceFirst('+20', '').trim();
+                  if (!RegExp(r'^\d+$').hasMatch(phoneWithoutCode)) {
+                    return 'Enter a valid phone number';
+                  }
+                  if (phoneWithoutCode.length != 10) {
+                    return 'Phone number should have exactly 10 digits after +20';
+                  }
+                  return null;
+                },
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
-                borderSide: BorderSide(color: Colors.grey),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
-                borderSide: BorderSide(color: Colors.blue),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20.0),
-                borderSide: BorderSide(color: Colors.red),
-              ),
-            ),
-            keyboardType: TextInputType.phone,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Phone Number is required';
-              }
-              if (!RegExp(r'^\d+$').hasMatch(value)) {
-                return 'Enter a valid phone number';
-              }
-              return null;
-            },
-          ),
 
-          SizedBox(height: 16),
+
+              SizedBox(height: 16),
               // Password Field
           TextFormField(
             controller: _passwordController,
