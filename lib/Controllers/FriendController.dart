@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import '../Database.dart';
 import '../Models/Friend.dart';
 import '../Models/Gift.dart';
+import '../NotificationService.dart';
 import '../Views/Home.dart';
 import '../Views/MyPledgedGifts.dart';
 import '../Views/Profile.dart';
@@ -434,6 +435,9 @@ PopEditCard(BuildContext context)async{
 
         // Save the FCM token for the authenticated user
         await FirebaseMessagingService().initNotifications(user);
+
+        // final giftNotificationManager = GiftNotificationManager();
+        // giftNotificationManager.startListening(user);
 
         // Add a delay based on the setupRealtimeListenersOptimized result
         int delayInSeconds = await db.setupRealtimeListenersOptimized(user);

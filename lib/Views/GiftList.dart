@@ -475,7 +475,7 @@ class _GiftListPageState extends State<GiftListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                if (_formKey.currentState?.validate()==true && imageFile!=null) {
+                if (_formKey.currentState?.validate()==true && encodedImage!=null) {
                   await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context,);
                   //controller.showCustomSnackBar(context, "Gift Added/Updated Successfully", backgroundColor: Colors.green);
                   widget.event.giftlist = await controller.GetGiftList(widget.event.id!);
@@ -485,7 +485,7 @@ class _GiftListPageState extends State<GiftListPage> {
                   CircularProgressIndicator();
                   await controller.syncGiftsTableToFirebase();
                 }
-                if(imageFile==null)
+                if(encodedImage==null)
                   showDialog(
                     context: context,
                     builder: (context) {
