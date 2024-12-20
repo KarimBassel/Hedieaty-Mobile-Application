@@ -135,7 +135,7 @@ class _GiftListPageState extends State<GiftListPage> {
                       leading: gift.image != null
                           ?  CircleAvatar(
                         radius: 22,
-                        backgroundImage: MemoryImage(base64Decode(gift.image!.split(',').last)),
+                        backgroundImage: gift.image!=null?MemoryImage(base64Decode(gift.image!.split(',').last)):null,
                       ) : Icon(Icons.image, size: 50),
                       title: Text(gift.name, style: TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Row(
@@ -475,7 +475,7 @@ class _GiftListPageState extends State<GiftListPage> {
             TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
             TextButton(
               onPressed: () async {
-                if (_formKey.currentState?.validate()==true && encodedImage!=null) {
+                if (_formKey.currentState?.validate()==true && (imageFile!=null || encodedImage!=null)) {
                   await controller.OnSaveGiftPressed(imageFile, encodedImage, gift, widget.event, nameController, categoryController, descriptionController, priceController, status, context,);
                   //controller.showCustomSnackBar(context, "Gift Added/Updated Successfully", backgroundColor: Colors.green);
                   widget.event.giftlist = await controller.GetGiftList(widget.event.id!);

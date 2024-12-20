@@ -109,6 +109,8 @@ class Friend {
     if (eventsResponse.isEmpty) return eventsList;
     for (var eventData in eventsResponse) {
       Event event = Event.fromMap(eventData);
+      String status = (event.date != null && event.date!.isAfter(DateTime.now())) ? "Upcoming" : "Completed";
+      event.status=status;
       List<Map<String, dynamic>> giftsResponse = await db.readData(
           "SELECT * FROM Gifts WHERE EventID=${event.id}"
       );

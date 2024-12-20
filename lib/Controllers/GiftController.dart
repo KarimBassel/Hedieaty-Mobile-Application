@@ -289,8 +289,10 @@ PublishGift(Gift gift)async{
     return await Gift.getGiftList(gift.eventId!);
   }
 
-  DeleteEventGifts(){
 
-  }
+RemoveFromMyPledgedGifts(Gift gift)async{
+    gift.PledgerID=-1;
+    await Gift.updateGift(gift);
+}
 
 }

@@ -545,6 +545,9 @@ Future<void> SubmitSignUpForm(
     else if(Emailsnapshot.exists){
       showCustomSnackBar(context, "Email Already Registered");
     }
+    else if(password.length < 6){
+      showCustomSnackBar(context, "Password is less than 6 characters");
+    }
     else {
       try {
         final userRecord = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);

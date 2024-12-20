@@ -84,6 +84,8 @@ class Event {
       List<Map<String, dynamic>> result = await db.readData(query);
       if (result.isNotEmpty) {
         Event event = Event.fromMap(result.first);
+        String status = (event.date != null && event.date!.isAfter(DateTime.now())) ? "Upcoming" : "Completed";
+        event.status=status;
         List<Gift> giftList = await Gift.getGiftList(event.id!);
         event.giftlist=giftList;
 
