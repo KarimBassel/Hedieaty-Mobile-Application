@@ -24,7 +24,7 @@ To run the **Hedieaty** Flutter app locally, follow these steps:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/hedieaty.git
+   git clone https://github.com/KarimBassel/Hedieaty-Mobile-Application.git
    ```
 
 2. **Navigate into the project directory:**
